@@ -5,18 +5,23 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "modules", "modules\modules.csproj", "{E1691BB8-B176-45EC-9002-2AB4A17B418B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{0EC88E8F-A7E0-4CBC-90A8-9647ED44FB9C}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
