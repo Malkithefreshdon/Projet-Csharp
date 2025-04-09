@@ -1,6 +1,8 @@
-﻿using modules.Clients;
-using modules.Graphes;
+﻿using Projet.Modules.Clients;
 using System;
+using modules.Salariés;
+using modules.Graphes;
+
 
 namespace modules.Commandes
 {
@@ -17,7 +19,7 @@ namespace modules.Commandes
         public Ville VilleDepart { get; set; }
         public Ville VilleArrivee { get; set; }
         public DateTime DateCommande { get; private set; }
-        public decimal Prix { get; set; }
+        public double Prix { get; set; }
         public double DistanceCalculee { get; set; }
 
         /// <summary>
@@ -33,7 +35,7 @@ namespace modules.Commandes
         /// <exception cref="ArgumentNullException">Lancée si client, villeDepart ou villeArrivee est null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Lancée si distance ou prix sont négatifs.</exception>
         /// <exception cref="ArgumentException">Lancée si villeDepart et villeArrivee sont identiques.</exception>
-        public Commande(Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, double distance, decimal prix)
+        public Commande(Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, double distance, double prix)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client), "Le client ne peut pas être null.");
@@ -46,12 +48,12 @@ namespace modules.Commandes
                 throw new ArgumentOutOfRangeException(nameof(distance), "La distance ne peut pas être négative.");
             if (prix < 0)
                 throw new ArgumentOutOfRangeException(nameof(prix), "Le prix ne peut pas être négatif.");
-            if (villeDepart.Equals(villeArrivee)) 
+            if (villeDepart.Equals(villeArrivee))
                 throw new ArgumentException("La ville de départ et la ville d'arrivée ne peuvent pas être identiques.");
 
-            Id = 0; 
+            Id = 0;
             Client = client;
-            Chauffeur = chauffeur; 
+            Chauffeur = chauffeur;
             VilleDepart = villeDepart;
             VilleArrivee = villeArrivee;
             DateCommande = DateTime.Now;
@@ -72,11 +74,11 @@ namespace modules.Commandes
         /// <param name="dateCommande">La date et heure originales de la commande.</param>
         /// <param name="distance">La distance calculée.</param>
         /// <param name="prix">Le prix de la commande.</param>
-        public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, decimal prix)
-            : this(client, chauffeur, villeDepart, villeArrivee, distance, prix) 
+        public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
+            : this(client, chauffeur, villeDepart, villeArrivee, distance, prix)
         {
-            Id = id; 
-            DateCommande = dateCommande; 
+            Id = id;
+            DateCommande = dateCommande;
         }
 
 
@@ -114,11 +116,11 @@ namespace modules.Commandes
                 throw new ArgumentOutOfRangeException(nameof(id), "L'ID assigné doit être positif.");
             }
 
-            if (Id == 0) 
+            if (Id == 0)
             {
                 Id = id;
             }
-            else if (Id != id) 
+            else if (Id != id)
             {
                 throw new InvalidOperationException($"Impossible de changer l'ID de la commande de {Id} à {id}. L'ID est déjà assigné.");
             }

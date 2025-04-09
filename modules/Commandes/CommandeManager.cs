@@ -5,19 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Text.Json; // Pour la sérialisation/désérialisation JSON
 
-namespace modules.Commandes 
+namespace modules.Commandes
 {
     public class CommandeManager
     {
         private List<Commande> _commandes;
-        private int _prochainId; 
+        private int _prochainId;
 
-        public string FichierSauvegarde { get; set; } = "commandes.json"; 
+        public string FichierSauvegarde { get; set; } = "commandes.json";
 
         public CommandeManager()
         {
             _commandes = new List<Commande>();
-            ChargerCommandes(); 
+            ChargerCommandes();
             _prochainId = _commandes.Any() ? _commandes.Max(c => c.Id) + 1 : 1;
         }
 
@@ -122,6 +122,10 @@ namespace modules.Commandes
         /// <summary>
         /// Affiche toutes les commandes actuellement gérées dans la console.
         /// </summary>
+        public List<Commande> ObtenirToutesLesCommandes()
+        {
+            return _commandes;
+        }
         public void AfficherToutesCommandes()
         {
             Console.WriteLine("\n--- Liste de toutes les commandes ---");
@@ -165,6 +169,8 @@ namespace modules.Commandes
             return commandesClient;
         }
 
+
+
         /// <summary>
         /// Retourne une copie de la liste de toutes les commandes.
         /// Utile pour des traitements externes sans modifier la liste interne.
@@ -172,7 +178,7 @@ namespace modules.Commandes
         /// <returns>Une nouvelle liste contenant toutes les commandes.</returns>
         public List<Commande> GetToutesLesCommandes()
         {
-            return new List<Commande>(_commandes); 
+            return new List<Commande>(_commandes);
         }
 
 
@@ -242,7 +248,7 @@ namespace modules.Commandes
             else
             {
                 Console.WriteLine($"Fichier de sauvegarde {fichier} non trouvé. Aucune commande chargée.");
-                _commandes = new List<Commande>(); 
+                _commandes = new List<Commande>();
                 _prochainId = 1;
             }
         }
