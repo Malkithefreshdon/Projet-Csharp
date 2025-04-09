@@ -12,7 +12,7 @@ namespace modules.Commandes
         private List<Commande> _commandes;
         private int _prochainId; 
 
-        public string FichierSauvegarde { get; set; } = "commandes.json"; 
+        public string FichierSauvegarde { get; set; } = "Ressources/commandes.json"; 
 
         public CommandeManager()
         {
@@ -169,7 +169,7 @@ namespace modules.Commandes
             return commandesClient;
         }
 
-        
+
 
         /// <summary>
         /// Retourne une copie de la liste de toutes les commandes.

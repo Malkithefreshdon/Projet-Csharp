@@ -15,7 +15,7 @@ namespace modules.Salariés
 
         public Organigramme Racine { get; private set; } 
 
-        public string FichierSauvegarde { get; set; } = "salaries.json";
+        public string FichierSauvegarde { get; set; } = "Ressources/salaries.json";
 
         public SalarieManager()
         {

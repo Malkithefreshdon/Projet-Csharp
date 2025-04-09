@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace modules.Ressources
-{
-    class Distances
-    {
-    }
-}
+VilleA;VilleB;Distance
+Paris;Lyon;465
+Lyon;Marseille;315
+Paris;Lille;225
+Lille;Lyon;690
+Paris;Nantes;385
+Nantes;Bordeaux;345
+Lyon;Bordeaux;550
+Paris;Strasbourg;490
