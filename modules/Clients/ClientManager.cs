@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using modules.Commandes;
+using Projet.Modules.Clients;
 namespace Projet.Modules.Clients
 {
     public class ClientManager
