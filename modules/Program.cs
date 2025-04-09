@@ -1,4 +1,4 @@
-﻿using modules.Clients;
+﻿using Projet.Modules.Clients;
 using modules.Commandes;
 using modules.Graphes;
 using System;
@@ -70,8 +70,8 @@ class Program
         // Placeholder pour les clients
         clients = new List<Client>
         {
-            new Client(1, "Dupont", "Jean"),
-            new Client(2, "Martin", "Sophie")
+            new Client("1", "Dupont", "Jean", new DateTime(1990, 1, 1), "123 Rue de la Paix, Paris"),
+            new Client("2", "Martin", "Sophie", new DateTime(1985, 5, 15), "456 Rue de la Gare, Lyon")
         };
         Console.WriteLine($"{clients.Count} clients de test créés.");
     }
@@ -334,10 +334,10 @@ class Program
 
 
         // 2. Calculer un prix simple (Ex: 1.5 EUR par km + ancienneté chauffeur?)
-        decimal prixBaseKm = 1.5m;
+        double prixBaseKm = 1.5;
         // Ajout basé sur l'ancienneté (ex: +10% si > 5 ans)
-        decimal supplementAnciennete = (DateTime.Now.Year - chauffeurTest.DateEntreeSociete.Year) > 5 ? 1.1m : 1.0m;
-        decimal prixCalcule = Math.Round((decimal)distanceCmd * prixBaseKm * supplementAnciennete, 2);
+        double supplementAnciennete = (DateTime.Now.Year - chauffeurTest.DateEntreeSociete.Year) > 5 ? 1.1 : 1.0;
+        double prixCalcule = Math.Round(distanceCmd * prixBaseKm * supplementAnciennete, 2);
         Console.WriteLine($"Prix calculé: {prixCalcule:C}");
 
 

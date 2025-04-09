@@ -1,6 +1,8 @@
-﻿using modules.Clients;
-using modules.Graphes;
+﻿using Projet.Modules.Clients;
 using System;
+using modules.Salariés;
+using modules.Graphes;
+
 
 namespace modules.Commandes
 {
@@ -17,7 +19,7 @@ namespace modules.Commandes
         public Ville VilleDepart { get; set; }
         public Ville VilleArrivee { get; set; }
         public DateTime DateCommande { get; private set; }
-        public decimal Prix { get; set; }
+        public double Prix { get; set; }
         public double DistanceCalculee { get; set; }
 
         /// <summary>
@@ -33,7 +35,7 @@ namespace modules.Commandes
         /// <exception cref="ArgumentNullException">Lancée si client, villeDepart ou villeArrivee est null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Lancée si distance ou prix sont négatifs.</exception>
         /// <exception cref="ArgumentException">Lancée si villeDepart et villeArrivee sont identiques.</exception>
-        public Commande(Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, double distance, decimal prix)
+        public Commande(Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, double distance, double prix)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client), "Le client ne peut pas être null.");
@@ -72,7 +74,7 @@ namespace modules.Commandes
         /// <param name="dateCommande">La date et heure originales de la commande.</param>
         /// <param name="distance">La distance calculée.</param>
         /// <param name="prix">Le prix de la commande.</param>
-        public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, decimal prix)
+        public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
             : this(client, chauffeur, villeDepart, villeArrivee, distance, prix) 
         {
             Id = id; 

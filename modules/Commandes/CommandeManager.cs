@@ -122,6 +122,10 @@ namespace modules.Commandes
         /// <summary>
         /// Affiche toutes les commandes actuellement gérées dans la console.
         /// </summary>
+        public List<Commande> ObtenirToutesLesCommandes()
+        {
+            return _commandes;
+        }
         public void AfficherToutesCommandes()
         {
             Console.WriteLine("\n--- Liste de toutes les commandes ---");
@@ -164,6 +168,8 @@ namespace modules.Commandes
 
             return commandesClient;
         }
+
+        
 
         /// <summary>
         /// Retourne une copie de la liste de toutes les commandes.
