@@ -17,7 +17,7 @@ namespace Projet.Modules
         public string AdresseMail { get; set; }
         public string Telephone { get; set; }
         public virtual string Poste { get; set; }
-        public decimal Salaire { get; set; }
+        public double Salaire { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
         public string ManagerNumeroSS { get; set; }
@@ -42,7 +42,7 @@ namespace Projet.Modules
         }
 
         [JsonConstructor]
-        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, decimal salaire, string managerNumeroSS)
+        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, double salaire, string managerNumeroSS)
         {
             NumeroSecuriteSociale = numeroSecuriteSociale;
             DateNaissance = dateNaissance;

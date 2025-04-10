@@ -17,7 +17,7 @@ namespace modules
             var statistiqueService = new StatistiqueService(clientManager, commandeManager, salarieManager);
 
             // Initialisation de l'interface utilisateur
-            var menuPrincipal = new MenuPrincipal(clientManager, commandeManager, statistiqueService);
+            var menuPrincipal = new MenuPrincipal(clientManager, commandeManager, salarieManager, statistiqueService);
 
             // Démarrage de l'application
             Console.WriteLine("Bienvenue dans le système de gestion TransConnect");

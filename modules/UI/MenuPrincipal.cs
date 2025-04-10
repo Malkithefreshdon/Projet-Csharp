@@ -5,17 +5,11 @@ namespace Projet.UI
 {
     public class MenuPrincipal
     {
-        private readonly ClientManager _clientManager;
-        private readonly CommandeManager _commandeManager;
-        private readonly StatistiqueService _statistiqueService;
         private readonly SousMenus _sousMenus;
 
-        public MenuPrincipal(ClientManager clientManager, CommandeManager commandeManager, StatistiqueService statistiqueService)
+        public MenuPrincipal(ClientManager clientManager, CommandeManager commandeManager, SalarieManager salarieManager, StatistiqueService statistiqueService)
         {
-            _clientManager = clientManager;
-            _commandeManager = commandeManager;
-            _statistiqueService = statistiqueService;
-            _sousMenus = new SousMenus(clientManager, commandeManager, statistiqueService);
+            _sousMenus = new SousMenus(clientManager, commandeManager, salarieManager, statistiqueService);
         }
 
         public void AfficherMenu()
@@ -25,10 +19,12 @@ namespace Projet.UI
             {
                 Console.Clear();
                 ConsoleHelper.AfficherTitre("Menu Principal");
-                Console.WriteLine("1. Gestion des clients");
-                Console.WriteLine("2. Gestion des commandes");
-                Console.WriteLine("3. Statistiques");
-                Console.WriteLine("4. Quitter");
+                Console.WriteLine("1. Gestion des Clients");
+                Console.WriteLine("2. Gestion des Commandes");
+                Console.WriteLine("3. Gestion des Salariés");
+                Console.WriteLine("4. Gestion des Graphes");
+                Console.WriteLine("5. Statistiques");
+                Console.WriteLine("6. Quitter");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
@@ -41,9 +37,15 @@ namespace Projet.UI
                         _sousMenus.AfficherMenuCommandes();
                         break;
                     case "3":
-                        _sousMenus.AfficherMenuStatistiques();
+                        _sousMenus.AfficherMenuSalaries();
                         break;
                     case "4":
+                        _sousMenus.AfficherMenuGraphes();
+                        break;
+                    case "5":
+                        _sousMenus.AfficherMenuStatistiques();
+                        break;
+                    case "6":
                         continuer = false;
                         break;
                     default:
