@@ -1,12 +1,9 @@
-﻿using Projet.Modules.Clients;
-using modules.Commandes;
-using modules.Graphes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using modules.Salariés;
+using Projet.Modules;
 
 class ProgramMatteo
 {
@@ -21,6 +18,9 @@ class ProgramMatteo
     // Placeholder data
     static List<Client> clients; // Simple list for testing
 
+
+/*
+    DEPRECATED
     static void Main(string[] args)
     {
         Console.WriteLine("Démarrage de l'application TransConnect de test...");
@@ -46,7 +46,7 @@ class ProgramMatteo
         Console.WriteLine("\nFin des tests. Appuyez sur Entrée pour quitter.");
         Console.ReadLine();
     }
-
+*/
     static void InitialiserSysteme()
     {
         Console.WriteLine("\n--- Initialisation ---");

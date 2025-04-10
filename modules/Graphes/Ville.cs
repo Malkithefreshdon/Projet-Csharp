@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace modules.Graphes
+namespace Projet.Modules
 {
     public class Ville : IEquatable<Ville>
     {

@@ -1,12 +1,11 @@
-﻿using modules.Graphes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics; 
 using System.IO;
 using System.Linq;
 using System.Text; 
 
-namespace modules.Graphes 
+namespace Projet.Modules
 {
     public class GrapheService
     {

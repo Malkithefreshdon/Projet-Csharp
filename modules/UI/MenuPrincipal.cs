@@ -1,7 +1,5 @@
 using System;
-using Projet.Modules.Clients;
-using Projet.Modules.Commandes;
-using Projet.Modules.Statistiques;
+using Projet.Modules;
 
 namespace Projet.UI
 {

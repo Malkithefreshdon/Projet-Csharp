@@ -1,7 +1,6 @@
-﻿using modules.Graphes;
-using System;
+﻿using System;
 
-namespace modules.Graphes
+namespace Projet.Modules
 {
     public class Lien
     {

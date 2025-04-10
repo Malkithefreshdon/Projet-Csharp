@@ -1,10 +1,8 @@
-﻿using Projet.Modules.Clients;
-using System;
-using modules.Salariés;
-using modules.Graphes;
+﻿using System;
 
 
-namespace modules.Commandes
+
+namespace Projet.Modules
 {
     /// <summary>
     /// Représente une commande de livraison dans le système TransConnect.

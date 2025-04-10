@@ -1,11 +1,10 @@
-﻿using modules.Commandes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json; // Pour la sérialisation/désérialisation JSON
 
-namespace modules.Commandes 
+namespace Projet.Modules
 {
     public class CommandeManager
     {

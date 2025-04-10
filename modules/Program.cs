@@ -1,8 +1,5 @@
 ﻿using System;
-using Projet.Modules.Clients;
-using modules.Commandes;
-using modules.Salariés;
-using Projet.Modules.Statistiques;
+using Projet.Modules;
 using Projet.UI;
 
 namespace modules

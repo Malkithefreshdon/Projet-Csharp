@@ -1,8 +1,8 @@
-﻿using modules.Salariés;
+﻿
 using System;
 using System.Text.Json.Serialization; 
 
-namespace modules.Salariés
+namespace Projet.Modules
 {
     [JsonDerivedType(typeof(Responsable), typeDiscriminator: "Responsable")]
     [JsonDerivedType(typeof(Chauffeur), typeDiscriminator: "Chauffeur")]

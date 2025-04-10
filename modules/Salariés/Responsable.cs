@@ -1,8 +1,7 @@
-﻿using modules.Graphes;
-using System;
+﻿using System;
 using System.Text.Json.Serialization;
 
-namespace modules.Salariés
+namespace Projet.Modules
 {
     public class Responsable : Salarie
     {

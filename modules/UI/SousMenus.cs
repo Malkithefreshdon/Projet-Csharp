@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
-using Projet.Modules.Clients;
-using Projet.Modules.Commandes;
-using Projet.Modules.Statistiques;
+using Projet.Modules;
 
 namespace Projet.UI
 {
@@ -131,18 +129,32 @@ namespace Projet.UI
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout d'un client");
-            
-            Console.Write("Nom du client : ");
+
+            Console.Write("Numéro de sécurité sociale : ");
+            string numeroSS = Console.ReadLine();
+
+            Console.Write("Nom : ");
             string nom = Console.ReadLine();
+
+            Console.Write("Prénom : ");
+            string prenom = Console.ReadLine();
             
             Console.Write("Adresse : ");
             string adresse = Console.ReadLine();
 
-            var client = new Client(nom, adresse);
-            _clientManager.AjouterClient(client);
-            
-            Console.WriteLine("\nClient ajouté avec succès !");
-            Console.ReadKey();
+            Console.Write("Date de naissance (JJ/MM/AAAA) : ");
+            if (DateTime.TryParse(Console.ReadLine(), out DateTime dateNaissance))
+            {
+                _clientManager.AjouterClient(numeroSS, nom, prenom, dateNaissance, adresse);
+                
+                Console.WriteLine("\nClient ajouté avec succès !");
+                Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("Date de naissance invalide. Veuillez réessayer.");
+                Console.ReadKey();
+            }
         }
 
         private void SupprimerClient()
@@ -231,7 +243,7 @@ namespace Projet.UI
             if (chauffeur != null)
             {
                 Console.WriteLine($"Nom: {chauffeur.Nom}");
-                Console.WriteLine($"Nombre de livraisons: {chauffeur.NombreLivraisons}");
+                Console.WriteLine($"Nombre de livraisons: Non disponible");
             }
             else
             {
