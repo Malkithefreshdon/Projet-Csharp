@@ -1,5 +1,0 @@
-C:\Users\Matte\Source\Repos\Projet-Csharp\modules\obj\Debug\net8.0\modules.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Matte\Source\Repos\Projet-Csharp\modules\obj\Debug\net8.0\modules.AssemblyInfoInputs.cache
-C:\Users\Matte\Source\Repos\Projet-Csharp\modules\obj\Debug\net8.0\modules.AssemblyInfo.cs
-C:\Users\Matte\Source\Repos\Projet-Csharp\modules\obj\Debug\net8.0\modules.csproj.CoreCompileInputs.cache
-C:\Users\Matte\Source\Repos\Projet-Csharp\modules\obj\Debug\net8.0\modules.sourcelink.json
