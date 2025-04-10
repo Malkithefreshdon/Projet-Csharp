@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace modules.UI
+namespace Projet.UI
 {
     public static class ConsoleHelper
     {

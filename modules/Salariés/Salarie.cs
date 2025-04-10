@@ -1,8 +1,8 @@
-﻿using modules.Salariés;
-using System;
-using System.Text.Json.Serialization;
 
-namespace modules.Salariés
+using System;
+using System.Text.Json.Serialization; 
+
+namespace Projet.Modules
 {
     [JsonDerivedType(typeof(Responsable), typeDiscriminator: "Responsable")]
     [JsonDerivedType(typeof(Chauffeur), typeDiscriminator: "Chauffeur")]
@@ -17,9 +17,9 @@ namespace modules.Salariés
         public string AdresseMail { get; set; }
         public string Telephone { get; set; }
         public virtual string Poste { get; set; }
-        public decimal Salaire { get; set; }
+        public double Salaire { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
         public string ManagerNumeroSS { get; set; }
 
         public Salarie(string numeroSS, string nom, string prenom, DateTime dateNaissance, DateTime dateEntree)
@@ -33,16 +33,16 @@ namespace modules.Salariés
             Prenom = prenom;
             DateNaissance = dateNaissance;
             DateEntreeSociete = dateEntree;
-            Poste = "Salarié";
-            Salaire = 0;
+            Poste = "Salarié"; 
+            Salaire = 0; 
             AdressePostale = string.Empty;
             AdresseMail = string.Empty;
             Telephone = string.Empty;
-            ManagerNumeroSS = null;
+            ManagerNumeroSS = null; 
         }
 
         [JsonConstructor]
-        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, decimal salaire, string managerNumeroSS)
+        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, double salaire, string managerNumeroSS)
         {
             NumeroSecuriteSociale = numeroSecuriteSociale;
             DateNaissance = dateNaissance;

@@ -1,9 +1,8 @@
-﻿using modules.Graphes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace modules.Graphes 
+namespace Projet.Modules
 {
     public class GrapheMatrice : Graphe
     {

@@ -1,28 +1,28 @@
-﻿using modules.Graphes;
+﻿
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text; 
 using System.Text.Json;
 
-namespace modules.Salariés
+namespace Projet.Modules
 {
     public class SalarieManager
     {
         private readonly Dictionary<string, Salarie> _tousLesSalaries;
-        private readonly Dictionary<string, Organigramme> _noeudsOrganigramme;
+        private readonly Dictionary<string, Organigramme> _noeudsOrganigramme; 
 
-        public Organigramme Racine { get; private set; }
+        public Organigramme Racine { get; private set; } 
 
-        public string FichierSauvegarde { get; set; } = "salaries.json";
+        public string FichierSauvegarde { get; set; } = "Ressources/salaries.json";
 
         public SalarieManager()
         {
             _tousLesSalaries = new Dictionary<string, Salarie>(StringComparer.OrdinalIgnoreCase);
             _noeudsOrganigramme = new Dictionary<string, Organigramme>(StringComparer.OrdinalIgnoreCase);
             Racine = null;
-            ChargerSalariesEtOrganigramme();
+            ChargerSalariesEtOrganigramme(); 
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace modules.Salariés
 
             if (!string.IsNullOrWhiteSpace(managerNumeroSS))
             {
-                nouveauSalarie.ManagerNumeroSS = managerNumeroSS;
+                nouveauSalarie.ManagerNumeroSS = managerNumeroSS; 
                 if (_noeudsOrganigramme.TryGetValue(managerNumeroSS, out Organigramme managerNoeud))
                 {
                     // Vérifier que le manager est bien un Responsable ? Optionnel.
@@ -57,7 +57,7 @@ namespace modules.Salariés
                 else
                 {
                     Console.WriteLine($"Avertissement: Manager avec ID {managerNumeroSS} non trouvé pour {nouveauSalarie}. Sera détaché.");
-
+                    
                 }
             }
             else
@@ -67,7 +67,7 @@ namespace modules.Salariés
                     Racine = nouveauNoeud;
                     Console.WriteLine($"{nouveauSalarie} défini comme racine.");
                 }
-                nouveauSalarie.ManagerNumeroSS = null;
+                nouveauSalarie.ManagerNumeroSS = null; 
             }
 
             Console.WriteLine($"Salarié {nouveauSalarie.Prenom} {nouveauSalarie.Nom} ajouté.");
@@ -125,7 +125,7 @@ namespace modules.Salariés
         public Salarie RechercherParId(string numeroSS)
         {
             _tousLesSalaries.TryGetValue(numeroSS, out Salarie salarie);
-            return salarie;
+            return salarie; 
         }
 
         /// <summary>
@@ -161,14 +161,14 @@ namespace modules.Salariés
             StringBuilder indentation = new StringBuilder();
             for (int i = 0; i < niveauIndentation; i++)
             {
-                indentation.Append("  ");
+                indentation.Append("  "); 
             }
             if (niveauIndentation > 0)
             {
                 indentation.Append("└── ");
             }
 
-            Console.WriteLine($"{indentation}{noeud.Salarie}");
+            Console.WriteLine($"{indentation}{noeud.Salarie}"); 
 
             foreach (var enfant in noeud.Enfants.OrderBy(n => n.Salarie.Nom))
             {
@@ -230,7 +230,7 @@ namespace modules.Salariés
                 {
                     foreach (var salarie in salariesCharges)
                     {
-                        Salarie instanceCorrecte = salarie;
+                        Salarie instanceCorrecte = salarie; 
 
                         if (instanceCorrecte != null && !_tousLesSalaries.ContainsKey(instanceCorrecte.NumeroSecuriteSociale))
                         {
@@ -283,7 +283,7 @@ namespace modules.Salariés
             catch (JsonException jsonEx)
             {
                 Console.WriteLine($"Erreur de format JSON lors du chargement depuis {fichier}: {jsonEx.Message}");
-                _tousLesSalaries.Clear();
+                _tousLesSalaries.Clear(); 
                 _noeudsOrganigramme.Clear();
                 Racine = null;
             }

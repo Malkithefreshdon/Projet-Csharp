@@ -1,10 +1,8 @@
-﻿using Projet.Modules.Clients;
 using System;
-using modules.Salariés;
-using modules.Graphes;
 
 
-namespace modules.Commandes
+
+namespace Projet.Modules
 {
     /// <summary>
     /// Représente une commande de livraison dans le système TransConnect.
@@ -75,7 +73,7 @@ namespace modules.Commandes
         /// <param name="distance">La distance calculée.</param>
         /// <param name="prix">Le prix de la commande.</param>
         public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
-            : this(client, chauffeur, villeDepart, villeArrivee, distance, prix)
+            : this(client, chauffeur, villeDepart, villeArrivee, distance, prix) 
         {
             Id = id;
             DateCommande = dateCommande;

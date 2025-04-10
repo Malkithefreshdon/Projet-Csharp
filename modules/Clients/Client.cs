@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using modules.Commandes;
-namespace Projet.Modules.Clients
+
+namespace Projet.Modules
 {
     public class Client
     {

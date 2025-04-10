@@ -1,9 +1,9 @@
-﻿using modules.Graphes;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; 
 
-namespace modules.Salariés
+namespace Projet.Modules
 {
     public class Organigramme
     {

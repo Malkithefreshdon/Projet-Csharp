@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Projet.Modules.Clients
+namespace Projet.Modules
 {
     public class ClientManager
     {

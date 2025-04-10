@@ -1,8 +1,8 @@
-﻿using modules.Graphes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace modules.Graphes
+
+namespace Projet.Modules
 {
     public abstract class Graphe
     {

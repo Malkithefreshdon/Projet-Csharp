@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Projet.Modules.Clients;
-using modules.Commandes;
-using modules.Salariés;
-using modules.Graphes;
 
-namespace Projet.Modules.Statistiques
+
+namespace Projet.Modules
 {
     public class StatistiqueService
     {
@@ -45,7 +42,7 @@ namespace Projet.Modules.Statistiques
             var chauffeurs = _salarieManager.GetTousLesSalaries()
                 .Where(s => s is Chauffeur)
                 .Cast<Chauffeur>();
-
+            
             return chauffeurs
                 .FirstOrDefault();
         }

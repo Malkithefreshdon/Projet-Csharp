@@ -1,18 +1,17 @@
-﻿using modules.Commandes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json; // Pour la sérialisation/désérialisation JSON
 
-namespace modules.Commandes
+namespace Projet.Modules
 {
     public class CommandeManager
     {
         private List<Commande> _commandes;
         private int _prochainId;
 
-        public string FichierSauvegarde { get; set; } = "commandes.json";
+        public string FichierSauvegarde { get; set; } = "Ressources/commandes.json"; 
 
         public CommandeManager()
         {

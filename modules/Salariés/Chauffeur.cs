@@ -1,8 +1,7 @@
-﻿using modules.Graphes;
 using System;
 using System.Text.Json.Serialization;
 
-namespace modules.Salariés
+namespace Projet.Modules
 {
     public class Chauffeur : Salarie
     {
@@ -18,7 +17,7 @@ namespace modules.Salariés
         }
 
         [JsonConstructor]
-        public Chauffeur(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, decimal salaire, string managerNumeroSS)
+        public Chauffeur(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, double salaire, string managerNumeroSS)
          : base(numeroSecuriteSociale, dateNaissance, dateEntreeSociete, nom, prenom, adressePostale, adresseMail, telephone, poste, salaire, managerNumeroSS)
         {
             Poste = "Chauffeur";
