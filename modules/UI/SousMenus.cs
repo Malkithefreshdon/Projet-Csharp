@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Projet.Modules;
 
-namespace Projet.UI
+namespace Projet.Modules
 {
     public class SousMenus
     {
@@ -29,28 +29,10 @@ namespace Projet.UI
             _grapheServiceMatrice = new GrapheService(_grapheMatrice);
 
             // Charger les données du graphe
-            CreerFichierDistancesSiAbsent();
-            _grapheServiceListe.ChargerGrapheDepuisCsv("Ressources/Distances.csv");
-            _grapheServiceMatrice.ChargerGrapheDepuisCsv("Ressources/Distances.csv");
+            _grapheServiceListe.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+            _grapheServiceMatrice.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
         }
 
-        private void CreerFichierDistancesSiAbsent()
-        {
-            if (!System.IO.File.Exists("Ressources/Distances.csv"))
-            {
-                Console.WriteLine("Création du fichier Distances.csv de démonstration...");
-                string csvContent = "VilleA;VilleB;Distance\n" +
-                                    "Paris;Lyon;465\n" +
-                                    "Lyon;Marseille;315\n" +
-                                    "Paris;Lille;225\n" +
-                                    "Lille;Lyon;690\n" +
-                                    "Paris;Nantes;385\n" +
-                                    "Nantes;Bordeaux;345\n" +
-                                    "Lyon;Bordeaux;550\n" +
-                                    "Paris;Strasbourg;490";
-                System.IO.File.WriteAllText("Ressources/Distances.csv", csvContent);
-            }
-        }
 
         public void AfficherMenuClients()
         {

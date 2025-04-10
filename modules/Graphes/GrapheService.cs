@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text; 
+using OfficeOpenXml;
 
 namespace Projet.Modules
 {
@@ -16,27 +17,80 @@ namespace Projet.Modules
             _graphe = graphe ?? throw new ArgumentNullException(nameof(graphe));
         }
 
-        public void ChargerGrapheDepuisCsv(string cheminFichier)
+        public void ChargerGrapheDepuisXlsx(string cheminFichier)
         {
-            if (!File.Exists(cheminFichier))
+
+            FileInfo fichierInfo = new FileInfo(cheminFichier);
+
+            if (!fichierInfo.Exists)
             {
-                Console.WriteLine($"Erreur: Le fichier CSV '{cheminFichier}' n'a pas été trouvé.");
+                Console.WriteLine($"Erreur: Le fichier Excel '{cheminFichier}' n'a pas été trouvé.");
                 return;
             }
 
             try
             {
-                var lignes = File.ReadAllLines(cheminFichier);
-                foreach (var ligne in lignes.Skip(1)) 
+                using (var package = new ExcelPackage(fichierInfo))
                 {
-                    if (string.IsNullOrWhiteSpace(ligne)) continue;
-
-                    var elements = ligne.Split(';');
-                    if (elements.Length >= 3)
+                    // On suppose que les données sont dans la première feuille de calcul
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
                     {
-                        string nomVilleA = elements[0].Trim();
-                        string nomVilleB = elements[1].Trim();
-                        if (double.TryParse(elements[2].Trim(), out double distance))
+                        Console.WriteLine($"Erreur: Le fichier Excel '{cheminFichier}' ne contient aucune feuille de calcul.");
+                        return;
+                    }
+
+                    // Vérifier si la feuille contient des données
+                    if (worksheet.Dimension == null)
+                    {
+                        Console.WriteLine($"Avertissement: La feuille de calcul '{worksheet.Name}' dans '{cheminFichier}' est vide.");
+                        return;
+                    }
+
+                    int startRow = worksheet.Dimension.Start.Row;
+                    int endRow = worksheet.Dimension.End.Row;
+
+                    for (int row = startRow + 1; row <= endRow; row++)
+                    {
+                        string nomVilleA = worksheet.Cells[row, 1].Text?.Trim();
+                        string nomVilleB = worksheet.Cells[row, 2].Text?.Trim();
+                        object valeurDistanceObj = worksheet.Cells[row, 3].Value; 
+
+                        // Ignorer les lignes où les noms de ville sont manquants
+                        if (string.IsNullOrWhiteSpace(nomVilleA) && string.IsNullOrWhiteSpace(nomVilleB))
+                        {
+                            continue;
+                        }
+                        if (string.IsNullOrWhiteSpace(nomVilleA) || string.IsNullOrWhiteSpace(nomVilleB))
+                        {
+                            Console.WriteLine($"Avertissement: Nom de ville manquant à la ligne {row} dans {cheminFichier}. Ligne ignorée.");
+                            continue;
+                        }
+
+
+                        double distance;
+                        bool parseOk = false;
+
+                        if (valeurDistanceObj is double d) 
+                        {
+                            distance = d;
+                            parseOk = true;
+                        }
+                        else if (valeurDistanceObj != null) 
+                        {
+                            parseOk = double.TryParse(valeurDistanceObj.ToString()?.Trim(),
+                                                      System.Globalization.NumberStyles.Any, 
+                                                      System.Globalization.CultureInfo.InvariantCulture, 
+                                                      out distance);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Avertissement: La cellule de distance est vide à la ligne {row} pour le lien {nomVilleA}-{nomVilleB} dans {cheminFichier}. Ligne ignorée.");
+                            continue; 
+                        }
+
+
+                        if (parseOk)
                         {
                             if (distance >= 0)
                             {
@@ -46,28 +100,30 @@ namespace Projet.Modules
                             }
                             else
                             {
-                                Console.WriteLine($"Avertissement: Distance négative ignorée pour le lien {nomVilleA}-{nomVilleB} dans {cheminFichier}.");
+                                Console.WriteLine($"Avertissement: Distance négative ({distance}) ignorée pour le lien {nomVilleA}-{nomVilleB} à la ligne {row} dans {cheminFichier}.");
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"Avertissement: Impossible de parser la distance '{elements[2]}' pour le lien {nomVilleA}-{nomVilleB} dans {cheminFichier}.");
+                            Console.WriteLine($"Avertissement: Impossible de parser la distance '{valeurDistanceObj}' pour le lien {nomVilleA}-{nomVilleB} à la ligne {row} dans {cheminFichier}.");
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine($"Avertissement: Ligne mal formatée ignorée dans {cheminFichier}: {ligne}");
-                    }
-                }
+                } 
+
                 Console.WriteLine($"Graphe chargé depuis {cheminFichier}. Nombre de villes: {_graphe.GetToutesLesVilles().Count()}.");
             }
             catch (IOException ex)
             {
                 Console.WriteLine($"Erreur d'entrée/sortie lors de la lecture de {cheminFichier}: {ex.Message}");
             }
+            catch (InvalidDataException ex) 
+            {
+                Console.WriteLine($"Erreur: Le fichier Excel '{cheminFichier}' semble corrompu ou n'est pas un format XLSX valide. {ex.Message}");
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur inattendue lors du chargement du graphe depuis {cheminFichier}: {ex.Message}");
+               
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
+using OfficeOpenXml;
 using Projet.Modules;
-using Projet.UI;
 
 namespace modules
 {
@@ -8,6 +8,8 @@ namespace modules
     {
         static void Main(string[] args)
         {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             // Initialisation des managers
             var clientManager = new ClientManager();
             var commandeManager = new CommandeManager();

@@ -1,6 +1,6 @@
 using System;
 
-namespace Projet.UI
+namespace Projet.Modules
 {
     public static class ConsoleHelper
     {

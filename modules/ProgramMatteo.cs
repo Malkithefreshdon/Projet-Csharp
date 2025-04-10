@@ -64,8 +64,6 @@ class ProgramMatteo
 
         // Charger les données du graphe depuis CSV
         CreerFichierDistancesSiAbsent(); // Crée un CSV de démo si besoin
-        grapheServiceListe.ChargerGrapheDepuisCsv("Ressources/Distances.csv");
-        grapheServiceMatrice.ChargerGrapheDepuisCsv("Ressources/Distances.csv"); // Charger dans les deux pour comparaison
 
         // Placeholder pour les clients
         clients = new List<Client>

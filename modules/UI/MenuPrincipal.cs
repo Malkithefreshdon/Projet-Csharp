@@ -1,7 +1,7 @@
 using System;
 using Projet.Modules;
 
-namespace Projet.UI
+namespace Projet.Modules
 {
     public class MenuPrincipal
     {
