@@ -263,10 +263,9 @@ class ProgramMatteo
             // Comparaison Bellman-Ford (sur GrapheListe)
             Console.WriteLine("\nUtilisation de Bellman-Ford (GrapheListe):");
             var chronoBF = Stopwatch.StartNew();
-            var (cheminBF, distBF, cycleNeg) = grapheServiceListe.BellmanFord(villeDepart, villeArrivee);
+            var (cheminBF, distBF) = grapheServiceListe.BellmanFord(villeDepart, villeArrivee);
             chronoBF.Stop();
             GrapheService.AfficherResultatChemin(cheminBF, distBF, chronoBF.Elapsed);
-            if (cycleNeg) Console.WriteLine("  Avertissement: Cycle négatif détecté par Bellman-Ford.");
 
             // Comparaison Floyd-Warshall (calcule tout) - plus long
             Console.WriteLine("\nCalcul de tous les chemins (Floyd-Warshall sur GrapheMatrice)...");

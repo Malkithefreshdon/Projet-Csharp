@@ -197,104 +197,98 @@ namespace Projet.Modules
             if (depart == null || arrivee == null || !_graphe.ContientVille(depart) || !_graphe.ContientVille(arrivee))
                 return (new List<Ville>(), double.PositiveInfinity);
 
-            var distances = new Dictionary<Ville, double>();
-            var predecesseurs = new Dictionary<Ville, Ville>();
-            var filePriorite = new SortedSet<(double distance, Ville ville)>(Comparer<(double distance, Ville ville)>.Create(
-                (a, b) => {
-                    int distCompare = a.distance.CompareTo(b.distance);
-                    if (distCompare == 0)
-                        return Comparer<Ville>.Default.Compare(a.ville, b.ville); 
-                    return distCompare;
-                }
-            ));
+            if (depart.Equals(arrivee))
+                return (new List<Ville> { depart }, 0);
 
+            Dictionary<Ville, double> distances = new Dictionary<Ville, double>();
+            Dictionary<Ville, Ville> predecesseurs = new Dictionary<Ville, Ville>();
+            List<Ville> nonVisites = new List<Ville>();
 
-            foreach (var ville in _graphe.GetToutesLesVilles())
+            foreach (Ville ville in _graphe.GetToutesLesVilles())
             {
-                distances[ville] = double.PositiveInfinity;
+                distances[ville] = ville.Equals(depart) ? 0 : double.PositiveInfinity;
+                nonVisites.Add(ville);
             }
-            distances[depart] = 0;
-            filePriorite.Add((0, depart));
 
-            while (filePriorite.Count > 0)
+            while (nonVisites.Count > 0)
             {
-                var (distCourante, villeCourante) = filePriorite.Min; 
-                filePriorite.Remove(filePriorite.Min);
+                Ville villeCourante = TrouverVilleMinimale(nonVisites, distances);
 
-                if (villeCourante.Equals(arrivee)) break; 
-                if (double.IsPositiveInfinity(distCourante)) break; 
+                if (villeCourante == null || double.IsPositiveInfinity(distances[villeCourante]))
+                    break;
 
-                foreach (var (voisin, poids) in _graphe.ObtenirVoisins(villeCourante))
+                if (villeCourante.Equals(arrivee))
+                    break;
+
+                nonVisites.Remove(villeCourante);
+
+                foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(villeCourante))
                 {
-                    double nouvelleDistance = distCourante + poids;
+                    if (!nonVisites.Contains(voisin))
+                        continue;
+
+                    double nouvelleDistance = distances[villeCourante] + poids;
                     if (nouvelleDistance < distances[voisin])
                     {
-                        filePriorite.Remove((distances[voisin], voisin));
-
                         distances[voisin] = nouvelleDistance;
                         predecesseurs[voisin] = villeCourante;
-
-                        filePriorite.Add((nouvelleDistance, voisin));
                     }
                 }
             }
 
             if (!predecesseurs.ContainsKey(arrivee) && !depart.Equals(arrivee))
-            {
-                return (new List<Ville>(), double.PositiveInfinity); 
-            }
-
-            var chemin = new List<Ville>();
-            Ville etape = arrivee;
-            while (etape != null)
-            {
-                chemin.Add(etape);
-                if (etape.Equals(depart)) break; 
-                if (!predecesseurs.TryGetValue(etape, out etape))
-                {
-                    if (!etape.Equals(depart))
-                    {
-                        Console.WriteLine($"Erreur de reconstruction de chemin à l'étape {chemin.LastOrDefault()}");
-                        return (new List<Ville>(), double.PositiveInfinity); 
-                    }
-                    etape = null; 
-                }
-            }
-
-            chemin.Reverse(); 
-
-            if (chemin.Count == 0 || !chemin.First().Equals(depart) || !chemin.Last().Equals(arrivee))
-            {
-                if (depart.Equals(arrivee) && distances[arrivee] == 0) return (new List<Ville> { depart }, 0);
-                
                 return (new List<Ville>(), double.PositiveInfinity);
+
+            List<Ville> chemin = new List<Ville>();
+            for (Ville ville = arrivee; ville != null; ville = predecesseurs.TryGetValue(ville, out Ville pred) ? pred : null)
+            {
+                chemin.Add(ville);
+                if (ville.Equals(depart))
+                    break;
             }
 
+            chemin.Reverse();
 
             return (chemin, distances[arrivee]);
         }
 
+        private Ville TrouverVilleMinimale(List<Ville> nonVisites, Dictionary<Ville, double> distances)
+        {
+            double distanceMin = double.PositiveInfinity;
+            Ville villeMin = null;
+
+            foreach (Ville ville in nonVisites)
+            {
+                if (distances[ville] < distanceMin)
+                {
+                    distanceMin = distances[ville];
+                    villeMin = ville;
+                }
+            }
+
+            return villeMin;
+        }
+
         /// <summary>
-        /// Calcule le plus court chemin en utilisant Bellman-Ford. Gère les poids négatifs (mais pas les cycles négatifs).
+        /// Calcule le plus court chemin en utilisant Bellman-Ford. Capable de gérer les poids négatifs.
         /// Utile pour comparaison, bien que les distances réelles soient positives.
         /// </summary>
-        /// <returns>Tuple (chemin, distance). Détecte et signale les cycles négatifs.</returns>
-        public (List<Ville> chemin, double distanceTotale, bool cycleNegatifDetecte) BellmanFord(Ville depart, Ville arrivee)
+        /// <returns>Tuple (chemin, distance).</returns>
+        public (List<Ville> chemin, double distanceTotale) BellmanFord(Ville depart, Ville arrivee)
         {
             if (depart == null || arrivee == null || !_graphe.ContientVille(depart) || !_graphe.ContientVille(arrivee))
-                return (new List<Ville>(), double.PositiveInfinity, false);
+                return (new List<Ville>(), double.PositiveInfinity);
 
-            var distances = new Dictionary<Ville, double>();
-            var predecesseurs = new Dictionary<Ville, Ville>();
-            var toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
-            var tousLesLiens = new List<Lien>(); 
+            Dictionary<Ville, double> distances = new Dictionary<Ville, double>();
+            Dictionary<Ville, Ville> predecesseurs = new Dictionary<Ville, Ville>();
+            List<Ville> toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
+            List<Lien> tousLesLiens = new List<Lien>(); 
 
-            foreach (var ville in toutesLesVilles)
+            foreach (Ville ville in toutesLesVilles)
             {
                 distances[ville] = double.PositiveInfinity;
                 predecesseurs[ville] = null;
-                // Collecter tous les liens
-                foreach (var (voisin, poids) in _graphe.ObtenirVoisins(ville))
+                foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(ville))
                 {
                     tousLesLiens.Add(new Lien(ville, voisin, poids));
                 }
@@ -305,7 +299,7 @@ namespace Projet.Modules
 
             for (int i = 1; i < nbVilles; i++)
             {
-                foreach (var lien in tousLesLiens)
+                foreach (Lien lien in tousLesLiens)
                 {
                     if (distances[lien.Origine] != double.PositiveInfinity &&
                         distances[lien.Origine] + lien.Poids < distances[lien.Destination])
@@ -316,34 +310,13 @@ namespace Projet.Modules
                 }
             }
 
-            bool cycleNegatifDetecte = false;
-            foreach (var lien in tousLesLiens)
-            {
-                if (distances[lien.Origine] != double.PositiveInfinity &&
-                    distances[lien.Origine] + lien.Poids < distances[lien.Destination])
-                {
-                    cycleNegatifDetecte = true;
-                    Console.WriteLine($"Cycle négatif détecté affectant le lien {lien}");
-                    break; 
-                }
-            }
-
-            if (cycleNegatifDetecte)
-            {
-                // Si un cycle négatif est détecté, le concept de "plus court chemin" peut être invalide
-                // On retourne quand même le chemin trouvé, mais avec un avertissement.
-                // Ou on pourrait retourner un chemin vide pour indiquer l'impossibilité.
-                Console.WriteLine("Avertissement: Cycle négatif détecté, le chemin le plus court peut ne pas être fiable.");
-                return (new List<Ville>(), double.NegativeInfinity, true); // Option alternative
-            }
-
             if (!predecesseurs.ContainsKey(arrivee) && !depart.Equals(arrivee))
             {
-                if (depart.Equals(arrivee) && distances[arrivee] == 0) return (new List<Ville> { depart }, 0, cycleNegatifDetecte);
-                return (new List<Ville>(), double.PositiveInfinity, cycleNegatifDetecte);
+                if (depart.Equals(arrivee) && distances[arrivee] == 0) return (new List<Ville> { depart }, 0);
+                return (new List<Ville>(), double.PositiveInfinity);
             }
 
-            var chemin = new List<Ville>();
+            List<Ville> chemin = new List<Ville>();
             Ville etape = arrivee;
             while (etape != null)
             {
@@ -353,7 +326,7 @@ namespace Projet.Modules
                 {
                     if (!etape.Equals(depart))
                     {
-                        return (new List<Ville>(), double.PositiveInfinity, cycleNegatifDetecte); 
+                        return (new List<Ville>(), double.PositiveInfinity); 
                     }
                     etape = null;
                 }
@@ -362,11 +335,11 @@ namespace Projet.Modules
 
             if (chemin.Count == 0 || !chemin.First().Equals(depart) || !chemin.Last().Equals(arrivee))
             {
-                if (depart.Equals(arrivee) && distances[arrivee] == 0) return (new List<Ville> { depart }, 0, cycleNegatifDetecte);
-                return (new List<Ville>(), double.PositiveInfinity, cycleNegatifDetecte);
+                if (depart.Equals(arrivee) && distances[arrivee] == 0) return (new List<Ville> { depart }, 0);
+                return (new List<Ville>(), double.PositiveInfinity);
             }
 
-            return (chemin, distances[arrivee], cycleNegatifDetecte);
+            return (chemin, distances[arrivee]);
         }
 
 
@@ -397,7 +370,7 @@ namespace Projet.Modules
                 if (nbVilles == 0) return null;
 
                 matriceDistances = new double[nbVilles, nbVilles];
-                var villeIndexMap = new Dictionary<Ville, int>();
+                Dictionary<Ville, int> villeIndexMap = new Dictionary<Ville, int>();
                 for (int i = 0; i < nbVilles; ++i) villeIndexMap[villesList[i]] = i;
 
                 for (int i = 0; i < nbVilles; i++)
@@ -409,7 +382,6 @@ namespace Projet.Modules
                     }
                 }
             }
-
 
             int[,] matricePredecesseurs = new int[nbVilles, nbVilles];
 
@@ -442,18 +414,6 @@ namespace Projet.Modules
                             matricePredecesseurs[i, j] = matricePredecesseurs[k, j]; 
                         }
                     }
-                }
-            }
-
-            // Optionnel: Détection de cycles négatifs (si diagonale devient < 0)
-            for (int i = 0; i < nbVilles; i++)
-            {
-                if (matriceDistances[i, i] < 0)
-                {
-                    Console.WriteLine("Avertissement: Cycle négatif détecté par Floyd-Warshall.");
-                    // Gérer comme nécessaire (retourner null, lancer une exception, etc.)
-                    // return null;
-                    break;
                 }
             }
 
@@ -530,11 +490,11 @@ namespace Projet.Modules
         /// <returns>True si le graphe est connexe, False sinon.</returns>
         public bool EstConnexe()
         {
-            var toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
+            List<Ville> toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
             if (!toutesLesVilles.Any()) return true;
 
             Ville depart = toutesLesVilles.First();
-            var visites = BFS(depart); // Ou DFS(depart)
+            List<Ville> visites = BFS(depart); // Ou DFS(depart)
 
             return visites.Count == toutesLesVilles.Count;
         }
@@ -545,13 +505,13 @@ namespace Projet.Modules
         /// <returns>True si au moins un cycle est détecté, False sinon.</returns>
         public bool ContientCycle()
         {
-            var toutesLesVilles = _graphe.GetToutesLesVilles();
+            IEnumerable<Ville> toutesLesVilles = _graphe.GetToutesLesVilles();
             if (!toutesLesVilles.Any()) return false;
 
-            var visites = new HashSet<Ville>();     
-            var enCoursExploration = new HashSet<Ville>(); 
+            HashSet<Ville> visites = new HashSet<Ville>();
+            HashSet<Ville> enCoursExploration = new HashSet<Ville>(); 
 
-            foreach (var ville in toutesLesVilles)
+            foreach (Ville ville in toutesLesVilles)
             {
                 if (!visites.Contains(ville))
                 {
@@ -569,7 +529,7 @@ namespace Projet.Modules
             visites.Add(courant);
             enCoursExploration.Add(courant);
 
-            foreach (var (voisin, poids) in _graphe.ObtenirVoisins(courant))
+            foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(courant))
             {
                 if (enCoursExploration.Contains(voisin))
                 {
@@ -610,14 +570,14 @@ namespace Projet.Modules
             Console.WriteLine($"\n--- Comparaison d'exécution Dijkstra ({depart} -> {arrivee}) ---");
 
             var chrono1 = Stopwatch.StartNew();
-            var (chemin1, dist1) = this.Dijkstra(depart, arrivee);
+            (List<Ville> chemin1, double dist1) = this.Dijkstra(depart, arrivee);
             chrono1.Stop();
             Console.WriteLine($"Graphe actuel ({_graphe.GetType().Name}):");
             AfficherResultatChemin(chemin1, dist1, chrono1.Elapsed);
 
-            var serviceAutreGraphe = new GrapheService(autreGraphe);
+            GrapheService serviceAutreGraphe = new GrapheService(autreGraphe);
             var chrono2 = Stopwatch.StartNew();
-            var (chemin2, dist2) = serviceAutreGraphe.Dijkstra(depart, arrivee);
+            (List<Ville>chemin2, double dist2) = serviceAutreGraphe.Dijkstra(depart, arrivee);
             chrono2.Stop();
             Console.WriteLine($"\nAutre Graphe ({autreGraphe.GetType().Name}):");
             AfficherResultatChemin(chemin2, dist2, chrono2.Elapsed);
