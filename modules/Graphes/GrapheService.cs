@@ -364,7 +364,6 @@ namespace Projet.Modules
             }
             else
             {
-                Console.WriteLine("Conversion de GrapheListe en matrice pour Floyd-Warshall...");
                 villesList = _graphe.GetToutesLesVilles().ToList();
                 nbVilles = villesList.Count;
                 if (nbVilles == 0) return null;

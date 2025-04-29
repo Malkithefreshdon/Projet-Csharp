@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using Projet.Modules;
+using SkiaSharp;
+using System.Diagnostics;
+
 
 namespace Projet.Modules
 {
@@ -831,7 +834,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Recherche du Plus Court Chemin");
-            
+
             Console.Write("Ville de départ : ");
             string depart = Console.ReadLine();
             Console.Write("Ville d'arrivée : ");
@@ -840,26 +843,57 @@ namespace Projet.Modules
             var villeDepart = _grapheListe.GetToutesLesVilles().FirstOrDefault(v => v.Nom.Equals(depart, StringComparison.OrdinalIgnoreCase));
             var villeArrivee = _grapheListe.GetToutesLesVilles().FirstOrDefault(v => v.Nom.Equals(arrivee, StringComparison.OrdinalIgnoreCase));
 
-            if (villeDepart != null && villeArrivee != null)
+            if (villeDepart == null || villeArrivee == null)
             {
-                var chemin = _grapheServiceListe.Dijkstra(villeDepart, villeArrivee);
-                if (chemin.Item1 != null)
-                {
-                    Console.WriteLine("\nChemin trouvé :");
-                    foreach (var ville in chemin.Item1)
-                    {
-                        Console.WriteLine($"- {ville.Nom}");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("\nAucun chemin trouvé.");
-                }
+                Console.WriteLine("\nUne ou plusieurs villes n'ont pas été trouvées.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Initialisation de la visualisation
+            var visualisation = new GrapheVisualisation(_grapheListe);
+
+            // Comparaison des algorithmes
+            Console.WriteLine("\n--- Comparaison des algorithmes ---\n");
+
+            // Dijkstra
+            var chronoDijkstra = Stopwatch.StartNew();
+            var (cheminDijkstra, distanceDijkstra) = _grapheServiceListe.Dijkstra(villeDepart, villeArrivee);
+            chronoDijkstra.Stop();
+            Console.WriteLine($"Dijkstra: Distance = {distanceDijkstra:F2} km, Temps = {chronoDijkstra.Elapsed.TotalMilliseconds:F4} ms");
+            visualisation.DrawPath(cheminDijkstra, "chemin_dijkstra.png", SKColors.Red);
+
+            // Bellman-Ford
+            var chronoBellmanFord = Stopwatch.StartNew();
+            var (cheminBellmanFord, distanceBellmanFord) = _grapheServiceListe.BellmanFord(villeDepart, villeArrivee);
+            chronoBellmanFord.Stop();
+            Console.WriteLine($"Bellman-Ford: Distance = {distanceBellmanFord:F2} km, Temps = {chronoBellmanFord.Elapsed.TotalMilliseconds:F4} ms");
+            visualisation.DrawPath(cheminBellmanFord, "chemin_bellmanford.png", SKColors.Blue);
+
+            // Floyd-Warshall
+            var chronoFloydWarshall = Stopwatch.StartNew();
+            var resultatFloydWarshall = _grapheServiceListe.FloydWarshall();
+            chronoFloydWarshall.Stop();
+
+            if (resultatFloydWarshall.HasValue)
+            {
+                var (distancesFW, predecesseursFW) = resultatFloydWarshall.Value;
+                var villes = _grapheListe.GetToutesLesVilles().ToList();
+                var indexDepart = villes.IndexOf(villeDepart);
+                var indexArrivee = villes.IndexOf(villeArrivee);
+
+                var cheminFloydWarshall = _grapheServiceListe.ReconstruireCheminFloydWarshall(indexDepart, indexArrivee, distancesFW, predecesseursFW, villes);
+                var distanceFloydWarshall = distancesFW[indexDepart, indexArrivee];
+
+                Console.WriteLine($"Floyd-Warshall: Distance = {distanceFloydWarshall:F2} km, Temps = {chronoFloydWarshall.Elapsed.TotalMilliseconds:F4} ms");
+                visualisation.DrawPath(cheminFloydWarshall, "chemin_floydwarshall.png", SKColors.Green);
             }
             else
             {
-                Console.WriteLine("\nUne ou plusieurs villes n'ont pas été trouvées.");
+                Console.WriteLine("Floyd-Warshall: Erreur lors du calcul.");
             }
+            Console.WriteLine("Visualisations créées.");
+            Console.WriteLine("\n--- Fin de la comparaison ---");
             Console.ReadKey();
         }
 

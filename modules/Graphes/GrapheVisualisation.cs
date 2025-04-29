@@ -1,3 +1,4 @@
+using OfficeOpenXml;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -24,12 +25,94 @@ namespace Projet.Modules
         private void GeneratePositions()
         {
             var villes = _graphe.GetToutesLesVilles().ToList();
-            Random rand = new Random();
+            var positionsPredefinies = ChargerPositionsDepuisXlsx("Ressources/distances_villes_france_2.xlsx");
+
             foreach (var ville in villes)
             {
-                _positions[ville] = new SKPoint(rand.Next(_width), rand.Next(_height));
+                if (positionsPredefinies.TryGetValue(ville.Nom, out var position))
+                {
+                    // Utiliser les positions prédéfinies
+                    _positions[ville] = new SKPoint(position.X, position.Y);
+                }
+                else
+                {
+                    Console.WriteLine($"Position non définie pour la ville : {ville.Nom}. Une position aléatoire sera utilisée.");
+                    _positions[ville] = new SKPoint(new Random().Next(_width), new Random().Next(_height));
+                }
             }
+
+            // Normaliser les positions pour les adapter à la taille du canvas
+            NormaliserPositions();
+            AjouterEspacementMinimum(50); // Espacement minimum de 50 pixels
         }
+
+        private Dictionary<string, SKPoint> ChargerPositionsDepuisXlsx(string cheminFichier)
+        {
+            var positions = new Dictionary<string, SKPoint>();
+
+            FileInfo fichierInfo = new FileInfo(cheminFichier);
+            if (!fichierInfo.Exists)
+            {
+                Console.WriteLine($"Erreur : Le fichier Excel '{cheminFichier}' n'a pas été trouvé.");
+                return positions;
+            }
+
+            try
+            {
+                using (var package = new ExcelPackage(fichierInfo))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null || worksheet.Dimension == null)
+                    {
+                        Console.WriteLine($"Erreur : Le fichier Excel '{cheminFichier}' est vide ou ne contient aucune feuille.");
+                        return positions;
+                    }
+
+                    int startRow = worksheet.Dimension.Start.Row;
+                    int endRow = worksheet.Dimension.End.Row;
+
+                    for (int row = startRow + 1; row <= endRow; row++)
+                    {
+                        string nomVilleA = worksheet.Cells[row, 1].Text?.Trim();
+                        string nomVilleB = worksheet.Cells[row, 2].Text?.Trim();
+
+                        if (double.TryParse(worksheet.Cells[row, 4].Text?.Trim(), out double latitudeA) &&
+                            double.TryParse(worksheet.Cells[row, 5].Text?.Trim(), out double longitudeA))
+                        {
+                            if (!positions.ContainsKey(nomVilleA))
+                            {
+                                positions[nomVilleA] = ConvertirCoordonneesEnPosition(latitudeA, longitudeA);
+                            }
+                        }
+
+                        if (double.TryParse(worksheet.Cells[row, 6].Text?.Trim(), out double latitudeB) &&
+                            double.TryParse(worksheet.Cells[row, 7].Text?.Trim(), out double longitudeB))
+                        {
+                            if (!positions.ContainsKey(nomVilleB))
+                            {
+                                positions[nomVilleB] = ConvertirCoordonneesEnPosition(latitudeB, longitudeB);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement des positions depuis le fichier Excel : {ex.Message}");
+            }
+
+            return positions;
+        }
+
+        private SKPoint ConvertirCoordonneesEnPosition(double latitude, double longitude)
+        {
+            // Convertir les coordonnées géographiques en positions dans le canvas
+            // Exemple simple : normaliser les coordonnées dans les dimensions du canvas
+            float x = (float)((longitude + 180) / 360 * _width); // Normalisation longitude
+            float y = (float)((90 - latitude) / 180 * _height);  // Normalisation latitude
+            return new SKPoint(x, y);
+        }
+
 
         public void DrawGraphe(string filePath)
         {
@@ -107,6 +190,61 @@ namespace Projet.Modules
                     data.SaveTo(stream);
                 }
             }
+        }
+        private void NormaliserPositions()
+        {
+            if (_positions.Count == 0) return;
+
+            // Trouver les limites des positions actuelles
+            float minX = _positions.Values.Min(p => p.X);
+            float maxX = _positions.Values.Max(p => p.X);
+            float minY = _positions.Values.Min(p => p.Y);
+            float maxY = _positions.Values.Max(p => p.Y);
+
+            // Calculer les facteurs d'échelle
+            float scaleX = _width / (maxX - minX);
+            float scaleY = _height / (maxY - minY);
+            float scale = Math.Min(scaleX, scaleY) * 0.9f; // Réduction pour ajouter des marges
+
+            // Normaliser les positions
+            foreach (var ville in _positions.Keys.ToList())
+            {
+                var point = _positions[ville];
+                float normalizedX = (point.X - minX) * scale + _width * 0.05f; // Ajouter une marge
+                float normalizedY = (point.Y - minY) * scale + _height * 0.05f; // Ajouter une marge
+                _positions[ville] = new SKPoint(normalizedX, normalizedY);
+            }
+        }
+        private void AjouterEspacementMinimum(float espacement)
+        {
+            bool positionsAjustees;
+
+            do
+            {
+                positionsAjustees = false;
+
+                foreach (var ville1 in _positions.Keys.ToList())
+                {
+                    foreach (var ville2 in _positions.Keys.ToList())
+                    {
+                        if (ville1 == ville2) continue;
+
+                        var point1 = _positions[ville1];
+                        var point2 = _positions[ville2];
+
+                        float distance = (float)Math.Sqrt(Math.Pow(point2.X - point1.X, 2) + Math.Pow(point2.Y - point1.Y, 2));
+                        if (distance < espacement)
+                        {
+                            // Ajuster les positions pour augmenter l'espacement
+                            float deltaX = (point2.X - point1.X) / distance * (espacement - distance);
+                            float deltaY = (point2.Y - point1.Y) / distance * (espacement - distance);
+
+                            _positions[ville2] = new SKPoint(point2.X + deltaX, point2.Y + deltaY);
+                            positionsAjustees = true;
+                        }
+                    }
+                }
+            } while (positionsAjustees);
         }
     }
 }
