@@ -108,10 +108,13 @@ namespace Projet.Modules
             if (salaries == null || salaries.Count == 0)
                 return new OrganigrammeNaire();
 
-            // Trouver le DG (celui qui n'a pas de manager)
             var dg = salaries.Find(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
             if (dg == null)
-                throw new Exception("Aucun directeur général trouvé dans la liste");
+            {
+                dg = salaries.First();
+                dg.ManagerNumeroSS = null;
+                Console.WriteLine($"Attention: Aucun directeur général trouvé. {dg.Nom} défini comme racine temporaire.");
+            }
 
             var organigramme = new OrganigrammeNaire(dg);
             var noeudsParSS = new Dictionary<string, NoeudSalarie>
@@ -124,17 +127,28 @@ namespace Projet.Modules
             {
                 if (salarie == dg) continue;
 
-                if (!noeudsParSS.ContainsKey(salarie.ManagerNumeroSS))
-                    throw new Exception($"Manager non trouvé pour {salarie.Nom}");
-
-                var noeudManager = noeudsParSS[salarie.ManagerNumeroSS];
-                organigramme.InsererSubordonne(noeudManager, salarie);
-                
-                // Stocker le nouveau nœud pour les futurs subordonnés
-                var nouveauNoeud = noeudManager.Successeur;
-                while (nouveauNoeud.Frere != null)
-                    nouveauNoeud = nouveauNoeud.Frere;
-                noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
+                // Si le manager n'existe pas, rattacher à la racine
+                if (string.IsNullOrEmpty(salarie.ManagerNumeroSS) || !noeudsParSS.ContainsKey(salarie.ManagerNumeroSS))
+                {
+                    Console.WriteLine($"Attention: Manager non trouvé pour {salarie.Nom}, rattachement à la racine.");
+                    salarie.ManagerNumeroSS = dg.NumeroSecuriteSociale;
+                    organigramme.InsererSubordonne(organigramme.Racine, salarie);
+                    
+                    var nouveauNoeud = organigramme.Racine.Successeur;
+                    while (nouveauNoeud.Frere != null)
+                        nouveauNoeud = nouveauNoeud.Frere;
+                    noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
+                }
+                else
+                {
+                    var noeudManager = noeudsParSS[salarie.ManagerNumeroSS];
+                    organigramme.InsererSubordonne(noeudManager, salarie);
+                    
+                    var nouveauNoeud = noeudManager.Successeur;
+                    while (nouveauNoeud.Frere != null)
+                        nouveauNoeud = nouveauNoeud.Frere;
+                    noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
+                }
             }
 
             return organigramme;

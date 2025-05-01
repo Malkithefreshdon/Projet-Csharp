@@ -12,7 +12,7 @@ namespace Projet.Modules
         private readonly string _jsonFilePath;
         private List<Vehicule> _vehicules;
 
-        public VehiculeManager(string jsonFilePath = "modules/Ressources/vehicules.json")
+        public VehiculeManager(string jsonFilePath = "Ressources/vehicules.json")
         {
             _jsonFilePath = jsonFilePath;
             ChargerVehicules();

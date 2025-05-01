@@ -1085,9 +1085,9 @@ namespace Projet.Modules
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout Rapide d'un Salarié de Test");
 
+            // Saisie des informations de base
             Console.Write("Nom : ");
             string nom = Console.ReadLine();
-            
             if (string.IsNullOrWhiteSpace(nom))
             {
                 Console.WriteLine("Le nom ne peut pas être vide.");
@@ -1097,7 +1097,6 @@ namespace Projet.Modules
 
             Console.Write("Prénom : ");
             string prenom = Console.ReadLine();
-            
             if (string.IsNullOrWhiteSpace(prenom))
             {
                 Console.WriteLine("Le prénom ne peut pas être vide.");
@@ -1105,6 +1104,7 @@ namespace Projet.Modules
                 return;
             }
 
+            // Sélection du poste
             Console.WriteLine("\nChoisissez le poste :");
             Console.WriteLine("1. Directeur");
             Console.WriteLine("2. Chef d'Équipe");
@@ -1113,7 +1113,7 @@ namespace Projet.Modules
             Console.Write("\nVotre choix : ");
             
             string poste;
-            switch (Console.ReadLine())
+            switch (Console.ReadLine()?.Trim())
             {
                 case "1":
                     poste = "Directeur";
@@ -1126,7 +1126,7 @@ namespace Projet.Modules
                     break;
                 case "4":
                     Console.Write("Saisissez le poste : ");
-                    poste = Console.ReadLine();
+                    poste = Console.ReadLine()?.Trim();
                     break;
                 default:
                     Console.WriteLine("Choix invalide.");
@@ -1141,46 +1141,120 @@ namespace Projet.Modules
                 return;
             }
 
-            // Générer un numéro de sécurité sociale unique
+            // Sélection du manager
+            string managerNumeroSS = null;
+            Console.WriteLine("\nChoisissez un manager :");
+            Console.WriteLine("1. Ajouter sous un manager existant");
+            Console.WriteLine("2. Sans manager (racine)");
+            Console.Write("\nVotre choix : ");
+
+            bool isRoot = false;
+            switch (Console.ReadLine()?.Trim())
+            {
+                case "1":
+                    // Afficher la liste des managers potentiels
+                    var managers = _salarieManager.GetTousLesSalaries()
+                        .Where(s => s.Poste.Contains("Directeur", StringComparison.OrdinalIgnoreCase) || 
+                                  s.Poste.Contains("Chef", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    if (!managers.Any())
+                    {
+                        Console.WriteLine("Aucun manager disponible.");
+                        Console.ReadKey();
+                        return;
+                    }
+
+                    Console.WriteLine("\nManagers disponibles :");
+                    for (int i = 0; i < managers.Count; i++)
+                    {
+                        Console.WriteLine($"{i + 1}. {managers[i].Nom} ({managers[i].Poste}) - SS: {managers[i].NumeroSecuriteSociale}");
+                    }
+
+                    Console.Write("\nChoisissez le numéro du manager (0 pour annuler) : ");
+                    if (int.TryParse(Console.ReadLine(), out int choixManager) && choixManager > 0 && choixManager <= managers.Count)
+                    {
+                        managerNumeroSS = managers[choixManager - 1].NumeroSecuriteSociale;
+                    }
+                    else if (choixManager != 0)
+                    {
+                        Console.WriteLine("Choix invalide.");
+                        Console.ReadKey();
+                        return;
+                    }
+                    break;
+
+                case "2":
+                    isRoot = true;
+                    break;
+
+                default:
+                    Console.WriteLine("Choix invalide.");
+                    Console.ReadKey();
+                    return;
+            }
+
+            // Générer un numéro de sécurité sociale unique avec préfixe TEST
             string numeroSS = $"TEST{DateTime.Now.ToString("yyMMddHHmmss")}";
 
+            // Création du salarié
             var nouveauSalarie = new Salarie
             {
                 NumeroSecuriteSociale = numeroSS,
                 Nom = nom,
                 Prenom = prenom,
                 Poste = poste,
-                DateNaissance = new DateTime(1990, 1, 1), // Date par défaut
+                DateNaissance = new DateTime(1990, 1, 1),
                 DateEntreeSociete = DateTime.Now,
                 AdressePostale = "1 rue de Test, 75000 Paris",
                 AdresseMail = $"{prenom.ToLower()}.{nom.ToLower()}@test.com",
                 Telephone = "0123456789",
-                Salaire = 30000 // Salaire par défaut
+                Salaire = 30000
             };
 
-            Console.WriteLine("\nChoisissez un manager :");
-            Console.WriteLine("1. Ajouter sous un manager existant");
-            Console.WriteLine("2. Sans manager");
-            Console.Write("\nVotre choix : ");
-
-            string managerNumeroSS = null;
-            if (Console.ReadLine() == "1")
+            // Si c'est une racine, il faut d'abord vérifier s'il y a déjà une racine
+            if (isRoot)
             {
-                Console.Write("\nNuméro de sécurité sociale du manager : ");
-                managerNumeroSS = Console.ReadLine();
+                var racineExistante = _salarieManager.GetTousLesSalaries()
+                    .FirstOrDefault(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
+
+                if (racineExistante != null)
+                {
+                    Console.WriteLine($"\nIl existe déjà une racine : {racineExistante.Nom} ({racineExistante.Poste})");
+                    Console.WriteLine("Voulez-vous :");
+                    Console.WriteLine("1. Définir ce salarié comme nouvelle racine");
+                    Console.WriteLine("2. Ajouter sous la racine existante");
+                    Console.Write("\nVotre choix : ");
+
+                    switch (Console.ReadLine()?.Trim())
+                    {
+                        case "1":
+                            // La racine existante devient subordonnée de la nouvelle racine
+                            racineExistante.ManagerNumeroSS = numeroSS;
+                            break;
+                        case "2":
+                            managerNumeroSS = racineExistante.NumeroSecuriteSociale;
+                            break;
+                        default:
+                            Console.WriteLine("Choix invalide. Opération annulée.");
+                            Console.ReadKey();
+                            return;
+                    }
+                }
             }
 
-            bool ajoutOk = _salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS);
-            if (ajoutOk)
+            // Ajout du salarié
+            if (_salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS))
             {
                 Console.WriteLine("\nSalarié de test ajouté avec succès !");
-                Console.WriteLine("Détails du salarié créé :");
+                Console.WriteLine("\nDétails du salarié créé :");
                 AfficherDetailsSalarie(nouveauSalarie);
             }
             else
             {
-                Console.WriteLine("Erreur lors de l'ajout du salarié de test.");
+                Console.WriteLine("\nErreur lors de l'ajout du salarié de test.");
             }
+
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }

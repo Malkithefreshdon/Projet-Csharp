@@ -43,6 +43,7 @@ namespace Projet.Modules
                 if (noeudManager != null)
                 {
                     _organigramme.InsererSubordonne(noeudManager, nouveauSalarie);
+                    Console.WriteLine($"Salarié ajouté sous le manager {noeudManager.Salarie.Nom}");
                 }
                 else
                 {
@@ -57,15 +58,16 @@ namespace Projet.Modules
 
             Console.WriteLine($"Salarié {nouveauSalarie.Prenom} {nouveauSalarie.Nom} ajouté.");
             
-            // Sauvegarder les modifications dans le fichier JSON
+            // Sauvegarder et afficher l'organigramme
             try
             {
                 SauvegarderSalariesEtOrganigramme();
-                Console.WriteLine("Les modifications ont été sauvegardées dans le fichier JSON.");
+                Console.WriteLine("\nNouvelle structure de l'organigramme :");
+                AfficherOrganigramme();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Attention: Erreur lors de la sauvegarde dans le fichier JSON: {ex.Message}");
+                Console.WriteLine($"Attention: Erreur lors de la sauvegarde: {ex.Message}");
             }
             
             return true;
@@ -83,27 +85,231 @@ namespace Projet.Modules
                 return false;
             }
 
-            // Supprimer de la liste des salariés
+            // Stocker les informations importantes avant la suppression
+            string ancienManagerSS = salarieASupprimer.ManagerNumeroSS;
+            var subordonnes = ObtenirSubordonnesDirects(numeroSS);
+            var manager = string.IsNullOrEmpty(ancienManagerSS) ? null : RechercherParId(ancienManagerSS);
+            string ancienPoste = salarieASupprimer.Poste;
+            decimal ancienSalaire = salarieASupprimer.Salaire;
+
+            // Supprimer d'abord le salarié
             _tousLesSalaries.Remove(numeroSS);
 
-            // Reconstruire l'organigramme sans le salarié supprimé
-            var salaries = _tousLesSalaries.Values.ToList();
-            _organigramme = OrganigrammeNaire.ConstruireDepuisListe(salaries);
+            Console.WriteLine($"\nVous allez supprimer : {salarieASupprimer.Nom} ({ancienPoste})");
 
-            Console.WriteLine($"Salarié {salarieASupprimer.Prenom} {salarieASupprimer.Nom} supprimé.");
+            if (!string.IsNullOrEmpty(ancienPoste))
+            {
+                Console.Write($"\nVoulez-vous remplacer le poste de {ancienPoste} ? (O/N) : ");
+                if (Console.ReadLine()?.ToUpper() == "O")
+                {
+                    Console.WriteLine("\nComment souhaitez-vous remplacer ce poste ?");
+                    Console.WriteLine("1. Promouvoir un subordonné existant");
+                    Console.WriteLine("2. Ajouter un nouveau salarié");
+                    Console.Write("\nVotre choix : ");
 
-            // Sauvegarder les modifications dans le fichier JSON
+                    switch (Console.ReadLine())
+                    {
+                        case "1":
+                            if (subordonnes.Any())
+                            {
+                                Console.WriteLine("\nSubordonnés disponibles :");
+                                for (int i = 0; i < subordonnes.Count; i++)
+                                {
+                                    Console.WriteLine($"{i + 1}. {subordonnes[i].Nom} ({subordonnes[i].Poste})");
+                                }
+                                Console.Write("\nChoisissez le numéro du subordonné à promouvoir : ");
+                                if (int.TryParse(Console.ReadLine(), out int choix) && choix >= 1 && choix <= subordonnes.Count)
+                                {
+                                    var promu = subordonnes[choix - 1];
+                                    promu.Poste = ancienPoste;
+                                    promu.ManagerNumeroSS = ancienManagerSS;
+
+                                    // Gérer récursivement les subordonnés du promu
+                                    GererSubordonnesRecursif(promu);
+
+                                    // Réaffecter les autres subordonnés au promu
+                                    foreach (var sub in subordonnes)
+                                    {
+                                        if (sub != promu)
+                                        {
+                                            sub.ManagerNumeroSS = promu.NumeroSecuriteSociale;
+                                        }
+                                    }
+                                    Console.WriteLine($"\n{promu.Nom} a été promu au poste de {promu.Poste}");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("\nAucun subordonné disponible pour la promotion.");
+                            }
+                            break;
+
+                        case "2":
+                            Console.WriteLine("\nEntrez les informations du nouveau salarié :");
+                            
+                            Console.Write("Numéro de sécurité sociale : ");
+                            string newNumeroSS = Console.ReadLine();
+                            
+                            if (string.IsNullOrWhiteSpace(newNumeroSS))
+                            {
+                                Console.WriteLine("Numéro SS invalide.");
+                                break;
+                            }
+
+                            Console.Write("Nom : ");
+                            string newNom = Console.ReadLine();
+                            
+                            Console.Write("Prénom : ");
+                            string newPrenom = Console.ReadLine();
+
+                            Console.Write("Date de naissance (JJ/MM/AAAA) : ");
+                            if (!DateTime.TryParse(Console.ReadLine(), out DateTime newDateNaissance))
+                            {
+                                Console.WriteLine("Format de date invalide.");
+                                break;
+                            }
+
+                            Console.Write("Date d'entrée dans la société (JJ/MM/AAAA) : ");
+                            if (!DateTime.TryParse(Console.ReadLine(), out DateTime newDateEntree))
+                            {
+                                Console.WriteLine("Format de date invalide.");
+                                break;
+                            }
+
+                            // Créer et ajouter le nouveau salarié
+                            var nouveauSalarie = new Salarie
+                            {
+                                NumeroSecuriteSociale = newNumeroSS,
+                                Nom = newNom,
+                                Prenom = newPrenom,
+                                Poste = ancienPoste,
+                                DateNaissance = newDateNaissance,
+                                DateEntreeSociete = newDateEntree,
+                                ManagerNumeroSS = ancienManagerSS,
+                                Salaire = ancienSalaire // Hérite du même salaire
+                            };
+
+                            _tousLesSalaries.Add(newNumeroSS, nouveauSalarie);
+
+                            // Gérer récursivement les subordonnés existants
+                            GererSubordonnesRecursif(nouveauSalarie);
+
+                            // Réaffecter les subordonnés qui n'ont pas été réaffectés ailleurs
+                            foreach (var sub in subordonnes)
+                            {
+                                if (sub.ManagerNumeroSS == numeroSS)
+                                {
+                                    sub.ManagerNumeroSS = newNumeroSS;
+                                    Console.WriteLine($"- {sub.Nom} réaffecté à {newNom}");
+                                }
+                            }
+
+                            Console.WriteLine($"\nNouveau salarié {newNom} ajouté en remplacement de {salarieASupprimer.Nom}");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.Write("\nVoulez-vous réaffecter les subordonnés au manager supérieur ? (O/N) : ");
+                    bool reaffecterAuManager = Console.ReadLine()?.ToUpper() == "O";
+
+                    if (reaffecterAuManager && manager != null)
+                    {
+                        foreach (var subordonne in subordonnes)
+                        {
+                            subordonne.ManagerNumeroSS = manager.NumeroSecuriteSociale;
+                            Console.WriteLine($"- {subordonne.Nom} réaffecté à {manager.Nom}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nLes subordonnés deviendront indépendants.");
+                        foreach (var subordonne in subordonnes)
+                        {
+                            subordonne.ManagerNumeroSS = null;
+                            Console.WriteLine($"- {subordonne.Nom} devient indépendant");
+                        }
+                    }
+                }
+            }
+
+            // Reconstruire et afficher l'organigramme
+            _organigramme = OrganigrammeNaire.ConstruireDepuisListe(_tousLesSalaries.Values.ToList());
             try
             {
                 SauvegarderSalariesEtOrganigramme();
-                Console.WriteLine("Les modifications ont été sauvegardées dans le fichier JSON.");
+                Console.WriteLine("\nNouvelle structure de l'organigramme :");
+                AfficherOrganigramme();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Attention: Erreur lors de la sauvegarde dans le fichier JSON: {ex.Message}");
+                Console.WriteLine($"Attention: Erreur lors de la sauvegarde: {ex.Message}");
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Gère récursivement les subordonnés d'un salarié.
+        /// </summary>
+        private void GererSubordonnesRecursif(Salarie salarie)
+        {
+            var subordonnes = ObtenirSubordonnesDirects(salarie.NumeroSecuriteSociale);
+            if (!subordonnes.Any()) return;
+
+            Console.WriteLine($"\nGestion des subordonnés de {salarie.Nom} ({salarie.Poste}) :");
+            Console.WriteLine($"Il y a {subordonnes.Count} subordonné(s) à réaffecter.");
+            Console.Write("Voulez-vous gérer leur réaffectation ? (O/N) : ");
+            
+            if (Console.ReadLine()?.ToUpper() == "O")
+            {
+                foreach (var subordonne in subordonnes)
+                {
+                    Console.WriteLine($"\nGestion de : {subordonne.Nom} ({subordonne.Poste})");
+                    Console.WriteLine("1. Promouvoir à un autre poste");
+                    Console.WriteLine("2. Réaffecter à un autre manager");
+                    Console.WriteLine("3. Laisser sous le nouveau manager");
+                    Console.Write("\nVotre choix : ");
+
+                    switch (Console.ReadLine())
+                    {
+                        case "1":
+                            Console.Write("Nouveau poste : ");
+                            string nouveauPoste = Console.ReadLine();
+                            if (!string.IsNullOrWhiteSpace(nouveauPoste))
+                            {
+                                subordonne.Poste = nouveauPoste;
+                                Console.WriteLine($"{subordonne.Nom} promu au poste de {nouveauPoste}");
+                                // Gérer récursivement ses propres subordonnés
+                                GererSubordonnesRecursif(subordonne);
+                            }
+                            break;
+
+                        case "2":
+                            Console.Write("Numéro SS du nouveau manager : ");
+                            string nouveauManagerSS = Console.ReadLine();
+                            var nouveauManager = RechercherParId(nouveauManagerSS);
+                            if (nouveauManager != null)
+                            {
+                                subordonne.ManagerNumeroSS = nouveauManagerSS;
+                                Console.WriteLine($"{subordonne.Nom} réaffecté sous {nouveauManager.Nom}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Manager non trouvé, le subordonné reste sous le même manager");
+                            }
+                            break;
+
+                        case "3":
+                            Console.WriteLine($"{subordonne.Nom} reste sous le même manager");
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Les subordonnés restent sous leur manager actuel.");
+            }
         }
 
         /// <summary>
