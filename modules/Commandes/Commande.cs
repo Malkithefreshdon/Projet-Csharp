@@ -48,13 +48,42 @@ namespace Projet.Modules
             VilleDepart = villeDepart;
             VilleArrivee = villeArrivee;
             DateCommande = DateTime.Now;
-            DateLivraison = dateLivraison.Date; // On ne garde que la date, pas l'heure
+            DateLivraison = dateLivraison.Date;
 
-            // Calcul de la distance avec Dijkstra
-            var grapheService = new GrapheService(new GrapheListe(true));
-            grapheService.ChargerGrapheDepuisXlsx("modules/Ressources/distances_villes_france.xlsx");
-            var (chemin, distance) = grapheService.Dijkstra(villeDepart, villeArrivee);
-            DistanceCalculee = distance;
+            // Calcul de la distance avec BellmanFord
+            var grapheListe = new GrapheListe(true);
+            var grapheService = new GrapheService(grapheListe);
+            
+            try 
+            {
+                Console.WriteLine($"Calcul de la distance entre {villeDepart.Nom} et {villeArrivee.Nom}");
+                grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                
+                // Vérification que les villes sont bien dans le graphe
+                var toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
+                if (!toutesLesVilles.Any(v => v.Nom.Equals(villeDepart.Nom)) || 
+                    !toutesLesVilles.Any(v => v.Nom.Equals(villeArrivee.Nom)))
+                {
+                    throw new InvalidOperationException($"Une des villes n'existe pas dans le graphe. Villes disponibles : {string.Join(", ", toutesLesVilles.Select(v => v.Nom))}");
+                }
+
+                var (chemin, distance) = grapheService.BellmanFord(villeDepart, villeArrivee);
+                
+                if (double.IsInfinity(distance) || distance <= 0)
+                {
+                    Console.WriteLine($"Chemin trouvé : {(chemin != null ? string.Join(" -> ", chemin.Select(v => v.Nom)) : "aucun")}");
+                    Console.WriteLine($"Distance calculée : {distance}");
+                    throw new InvalidOperationException($"Impossible de calculer un itinéraire valide entre {villeDepart.Nom} et {villeArrivee.Nom}. Vérifiez que les villes sont bien connectées dans le graphe.");
+                }
+
+                DistanceCalculee = distance;
+                Console.WriteLine($"Distance calculée avec succès : {distance} km");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du calcul de la distance : {ex.Message}");
+                throw;
+            }
 
             // Calcul du prix
             CalculerPrix();

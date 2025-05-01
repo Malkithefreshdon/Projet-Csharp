@@ -1,44 +1,44 @@
 {
-    "clients": [
-        {
-            "numeroSS": "1850393750285 96",
-            "nom": "Dubois",
-            "prenom": "Marie",
-            "dateNaissance": "1985-03-15",
-            "adresse": "24 rue des Lilas, 75011 Paris",
-            "email": "marie.dubois@email.fr",
-            "telephone": "06 12 34 56 78",
-            "historiqueCommandes": []
-        },
-        {
-            "numeroSS": "1920875430167 45",
-            "nom": "Martin",
-            "prenom": "Thomas",
-            "dateNaissance": "1992-08-22",
-            "adresse": "8 avenue Victor Hugo, 69002 Lyon",
-            "email": "thomas.martin@email.fr",
-            "telephone": "07 23 45 67 89",
-            "historiqueCommandes": []
-        },
-        {
-            "numeroSS": "2891256780432 32",
-            "nom": "Petit",
-            "prenom": "Sophie",
-            "dateNaissance": "1989-12-03",
-            "adresse": "15 boulevard de la Mer, 44000 Nantes",
-            "email": "sophie.petit@email.fr",
-            "telephone": "06 98 76 54 32",
-            "historiqueCommandes": []
-        },
-        {
-            "numeroSS": "1780945632109 78",
-            "nom": "Bernard",
-            "prenom": "Philippe",
-            "dateNaissance": "1978-06-28",
-            "adresse": "42 rue du Commerce, 33000 Bordeaux",
-            "email": "philippe.bernard@email.fr",
-            "telephone": "07 65 43 21 09",
-            "historiqueCommandes": []
-        }
-    ]
-} 
+  "Clients": [
+    {
+      "NumeroSS": "1850393750285 96",
+      "Nom": "Dubois",
+      "Prenom": "Marie",
+      "DateNaissance": "1985-03-15T00:00:00",
+      "Adresse": "24 rue des Lilas, 75011 Paris",
+      "Email": "marie.dubois@email.fr",
+      "Telephone": "06 12 34 56 78",
+      "HistoriqueCommandes": []
+    },
+    {
+      "NumeroSS": "1920875430167 45",
+      "Nom": "Martin",
+      "Prenom": "Thomas",
+      "DateNaissance": "1992-08-22T00:00:00",
+      "Adresse": "8 avenue Victor Hugo, 69002 Lyon",
+      "Email": "thomas.martin@email.fr",
+      "Telephone": "07 23 45 67 89",
+      "HistoriqueCommandes": []
+    },
+    {
+      "NumeroSS": "2891256780432 32",
+      "Nom": "Petit",
+      "Prenom": "Sophie",
+      "DateNaissance": "1989-12-03T00:00:00",
+      "Adresse": "15 boulevard de la Mer, 44000 Nantes",
+      "Email": "sophie.petit@email.fr",
+      "Telephone": "06 98 76 54 32",
+      "HistoriqueCommandes": []
+    },
+    {
+      "NumeroSS": "1780945632109 78",
+      "Nom": "Bernard",
+      "Prenom": "Philippe",
+      "DateNaissance": "1978-06-28T00:00:00",
+      "Adresse": "42 rue du Commerce, 33000 Bordeaux",
+      "Email": "philippe.bernard@email.fr",
+      "Telephone": "07 65 43 21 09",
+      "HistoriqueCommandes": []
+    }
+  ]
+}

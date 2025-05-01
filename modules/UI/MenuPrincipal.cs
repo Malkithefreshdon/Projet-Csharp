@@ -1,15 +1,32 @@
 using System;
 using Projet.Modules;
+using Projet.Modules.UI;
 
 namespace Projet.Modules
 {
     public class MenuPrincipal
     {
-        private readonly SousMenus _sousMenus;
+        private readonly ClientManagerUI _clientManagerUI;
+        private readonly CommandeManagerUI _commandeManagerUI;
+        private readonly SalarieManagerUI _salarieManagerUI;
+        private readonly StatistiqueServiceUI _statistiqueServiceUI;
+        private readonly GrapheUI _grapheUI;
+        private readonly VehiculeManagerUI _vehiculeManagerUI;
+        private readonly MaintenanceManagerUI _maintenanceManagerUI;
+        private readonly FideliteUI _fideliteUI;
+        private readonly FinanceUI _financeUI;
 
         public MenuPrincipal(ClientManager clientManager, CommandeManager commandeManager, SalarieManager salarieManager, StatistiqueService statistiqueService)
         {
-            _sousMenus = new SousMenus(clientManager, commandeManager, salarieManager, statistiqueService);
+            _clientManagerUI = new ClientManagerUI(clientManager);
+            _commandeManagerUI = new CommandeManagerUI(commandeManager, clientManager, salarieManager, new VehiculeManager(), new GrapheListe(true));
+            _salarieManagerUI = new SalarieManagerUI(salarieManager);
+            _statistiqueServiceUI = new StatistiqueServiceUI(statistiqueService);
+            _grapheUI = new GrapheUI(new GrapheListe(true), new GrapheMatrice(true));
+            _vehiculeManagerUI = new VehiculeManagerUI(new VehiculeManager());
+            _maintenanceManagerUI = new MaintenanceManagerUI(new MaintenanceManager(), new VehiculeManager());
+            _fideliteUI = new FideliteUI(clientManager);
+            _financeUI = new FinanceUI(commandeManager, salarieManager);
         }
 
         public void AfficherMenu()
@@ -26,38 +43,42 @@ namespace Projet.Modules
                 Console.WriteLine("5. Gestion des Véhicules");
                 Console.WriteLine("6. Statistiques");
                 Console.WriteLine("7. Programme de Fidélité");
-                Console.WriteLine("8. Finance");  
-                Console.WriteLine("9. Quitter");
+                Console.WriteLine("8. Finance");
+                Console.WriteLine("9. Maintenance");
+                Console.WriteLine("0. Quitter");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
-                        _sousMenus.AfficherMenuClients();
+                        _clientManagerUI.AfficherMenu();
                         break;
                     case "2":
-                        _sousMenus.AfficherMenuCommandes();
+                        _commandeManagerUI.AfficherMenu();
                         break;
                     case "3":
-                        _sousMenus.AfficherMenuSalaries();
+                        _salarieManagerUI.AfficherMenu();
                         break;
                     case "4":
-                        _sousMenus.AfficherMenuGraphes();
+                        _grapheUI.AfficherMenu();
                         break;
                     case "5":
-                        _sousMenus.AfficherMenuVehicules();
+                        _vehiculeManagerUI.AfficherMenu();
                         break;
                     case "6":
-                        _sousMenus.AfficherMenuStatistiques();
+                        _statistiqueServiceUI.AfficherMenu();
                         break;
                     case "7":
-                        _sousMenus.AfficherMenuFidelite();
+                        _fideliteUI.AfficherMenu();
                         break;
                     case "8":
-                        _sousMenus.AfficherMenuFinance();  
+                        _financeUI.AfficherMenu();
                         break;
                     case "9":
+                        _maintenanceManagerUI.AfficherMenu();
+                        break;
+                    case "0":
                         continuer = false;
                         break;
                     default:
