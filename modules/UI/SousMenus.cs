@@ -132,20 +132,45 @@ namespace Projet.Modules
                 Console.Clear();
                 ConsoleHelper.AfficherTitre("Gestion des Commandes");
                 Console.WriteLine("1. Créer une commande");
-                Console.WriteLine("2. Associer une commande à un client");
-                Console.WriteLine("3. Retour");
+                Console.WriteLine("2. Modifier une commande");
+                Console.WriteLine("3. Supprimer une commande");
+                Console.WriteLine("4. Rechercher une commande");
+                Console.WriteLine("5. Afficher toutes les commandes");
+                Console.WriteLine("6. Rechercher les commandes par client");
+                Console.WriteLine("7. Rechercher les commandes par véhicule");
+                Console.WriteLine("8. Rechercher les commandes par date de livraison");
+                Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
-                        // TODO: Implémenter la création de commande
+                        CreerCommande();
                         break;
                     case "2":
-                        AssocierCommandeClient();
+                        ModifierCommande();
                         break;
                     case "3":
+                        SupprimerCommande();
+                        break;
+                    case "4":
+                        RechercherCommande();
+                        break;
+                    case "5":
+                        _commandeManager.AfficherToutesCommandes();
+                        Console.ReadKey();
+                        break;
+                    case "6":
+                        RechercherCommandesParClient();
+                        break;
+                    case "7":
+                        RechercherCommandesParVehicule();
+                        break;
+                    case "8":
+                        RechercherCommandesParDate();
+                        break;
+                    case "0":
                         continuer = false;
                         break;
                     default:
@@ -823,17 +848,294 @@ namespace Projet.Modules
             return parties.Length > 0 ? parties[parties.Length - 1] : "Inconnue";
         }
 
-
-        private void AssocierCommandeClient()
+        private void CreerCommande()
         {
             Console.Clear();
-            ConsoleHelper.AfficherTitre("Association commande-client");
-            
+            ConsoleHelper.AfficherTitre("Création d'une commande");
+
+            // Sélection du client
+            Console.Write("Numéro de sécurité sociale du client : ");
+            string numeroSSClient = Console.ReadLine();
+            var client = _clientManager.RechercherClient(numeroSSClient);
+            if (client == null)
+            {
+                Console.WriteLine("Client non trouvé.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Sélection du chauffeur
+            Console.Write("Numéro de sécurité sociale du chauffeur : ");
+            string numeroSSChauffeur = Console.ReadLine();
+            var chauffeur = _salarieManager.RechercherParId(numeroSSChauffeur);
+            if (chauffeur == null)
+            {
+                Console.WriteLine("Chauffeur non trouvé.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Sélection du véhicule
+            Console.Write("Immatriculation du véhicule : ");
+            string immatriculation = Console.ReadLine();
+            var vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
+            if (vehicule == null)
+            {
+                Console.WriteLine("Véhicule non trouvé.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Sélection des villes
+            Console.Write("Ville de départ : ");
+            string villeDepart = Console.ReadLine();
+            var villeDepartObj = _grapheListe.GetToutesLesVilles()
+                .FirstOrDefault(v => v.Nom.Equals(villeDepart, StringComparison.OrdinalIgnoreCase));
+            if (villeDepartObj == null)
+            {
+                Console.WriteLine("Ville de départ non trouvée.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Ville d'arrivée : ");
+            string villeArrivee = Console.ReadLine();
+            var villeArriveeObj = _grapheListe.GetToutesLesVilles()
+                .FirstOrDefault(v => v.Nom.Equals(villeArrivee, StringComparison.OrdinalIgnoreCase));
+            if (villeArriveeObj == null)
+            {
+                Console.WriteLine("Ville d'arrivée non trouvée.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Date de livraison
+            Console.Write("Date de livraison (JJ/MM/AAAA) : ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateLivraison))
+            {
+                Console.WriteLine("Format de date invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            try
+            {
+                var nouvelleCommande = new Commande(client, chauffeur, vehicule, villeDepartObj, villeArriveeObj, dateLivraison);
+                _commandeManager.AjouterCommande(nouvelleCommande);
+                Console.WriteLine("Commande créée avec succès !");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la création de la commande : {ex.Message}");
+            }
+            Console.ReadKey();
+        }
+
+        private void ModifierCommande()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Modification d'une commande");
+
+            Console.Write("ID de la commande à modifier : ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            var commande = _commandeManager.TrouverCommandeParId(id);
+            if (commande == null)
+            {
+                Console.WriteLine("Commande non trouvée.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("\nCommande actuelle :");
+            Console.WriteLine(commande);
+
+            // Modification des informations
+            Console.WriteLine("\nLaisser vide pour conserver la valeur actuelle");
+
+            // Modification du chauffeur
+            Console.Write("\nNouveau numéro de sécurité sociale du chauffeur : ");
+            string nouveauChauffeurSS = Console.ReadLine();
+            Salarie nouveauChauffeur = !string.IsNullOrWhiteSpace(nouveauChauffeurSS) 
+                ? _salarieManager.RechercherParId(nouveauChauffeurSS) 
+                : commande.Chauffeur;
+
+            // Modification du véhicule
+            Console.Write("Nouvelle immatriculation du véhicule : ");
+            string nouvelleImmatriculation = Console.ReadLine();
+            Vehicule nouveauVehicule = !string.IsNullOrWhiteSpace(nouvelleImmatriculation)
+                ? _vehiculeManager.ObtenirVehiculeParImmatriculation(nouvelleImmatriculation)
+                : commande.Vehicule;
+
+            // Modification de la date de livraison
+            Console.Write("Nouvelle date de livraison (JJ/MM/AAAA) : ");
+            string nouvelleDateStr = Console.ReadLine();
+            DateTime nouvelleDateLivraison = !string.IsNullOrWhiteSpace(nouvelleDateStr) && DateTime.TryParse(nouvelleDateStr, out DateTime date)
+                ? date
+                : commande.DateLivraison;
+
+            try
+            {
+                var commandeModifiee = new Commande(
+                    commande.Id,
+                    commande.Client,
+                    nouveauChauffeur,
+                    nouveauVehicule,
+                    commande.VilleDepart,
+                    commande.VilleArrivee,
+                    commande.DateCommande,
+                    nouvelleDateLivraison,
+                    commande.DistanceCalculee,
+                    commande.Prix
+                );
+
+                if (_commandeManager.ModifierCommande(id, commandeModifiee))
+                {
+                    Console.WriteLine("Commande modifiée avec succès !");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la modification : {ex.Message}");
+            }
+            Console.ReadKey();
+        }
+
+        private void SupprimerCommande()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Suppression d'une commande");
+
+            Console.Write("ID de la commande à supprimer : ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            var commande = _commandeManager.TrouverCommandeParId(id);
+            if (commande == null)
+            {
+                Console.WriteLine("Commande non trouvée.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("\nCommande à supprimer :");
+            Console.WriteLine(commande);
+            Console.Write("\nÊtes-vous sûr de vouloir supprimer cette commande ? (O/N) : ");
+
+            if (Console.ReadLine()?.ToUpper() == "O")
+            {
+                if (_commandeManager.SupprimerCommande(id))
+                {
+                    Console.WriteLine("Commande supprimée avec succès !");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Suppression annulée.");
+            }
+            Console.ReadKey();
+        }
+
+        private void RechercherCommande()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Recherche d'une commande");
+
+            Console.Write("ID de la commande : ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            var commande = _commandeManager.TrouverCommandeParId(id);
+            if (commande != null)
+            {
+                Console.WriteLine("\nCommande trouvée :");
+                Console.WriteLine(commande);
+            }
+            else
+            {
+                Console.WriteLine("Aucune commande trouvée avec cet ID.");
+            }
+            Console.ReadKey();
+        }
+
+        private void RechercherCommandesParClient()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Recherche des commandes par client");
+
             Console.Write("Nom du client : ");
             string nomClient = Console.ReadLine();
 
-            // TODO: Implémenter la sélection de la commande
-            Console.WriteLine("Fonctionnalité à implémenter");
+            var commandes = _commandeManager.RechercherCommandesParClient(nomClient);
+            if (commandes.Any())
+            {
+                Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
+                foreach (var commande in commandes)
+                {
+                    Console.WriteLine(commande);
+                    Console.WriteLine("-----------------------------------");
+                }
+            }
+            Console.ReadKey();
+        }
+
+        private void RechercherCommandesParVehicule()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Recherche des commandes par véhicule");
+
+            Console.Write("Immatriculation du véhicule : ");
+            string immatriculation = Console.ReadLine();
+
+            var commandes = _commandeManager.RechercherCommandesParVehicule(immatriculation);
+            if (commandes.Any())
+            {
+                Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
+                foreach (var commande in commandes)
+                {
+                    Console.WriteLine(commande);
+                    Console.WriteLine("-----------------------------------");
+                }
+            }
+            Console.ReadKey();
+        }
+
+        private void RechercherCommandesParDate()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Recherche des commandes par date de livraison");
+
+            Console.Write("Date de livraison (JJ/MM/AAAA) : ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateLivraison))
+            {
+                Console.WriteLine("Format de date invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            var commandes = _commandeManager.RechercherCommandesParDateLivraison(dateLivraison);
+            if (commandes.Any())
+            {
+                Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
+                foreach (var commande in commandes)
+                {
+                    Console.WriteLine(commande);
+                    Console.WriteLine("-----------------------------------");
+                }
+            }
             Console.ReadKey();
         }
 

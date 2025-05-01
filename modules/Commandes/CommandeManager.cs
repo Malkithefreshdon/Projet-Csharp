@@ -21,16 +21,22 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Ajoute une nouvelle commande à la collection.
+        /// Ajoute une nouvelle commande à la collection après vérification de la disponibilité du chauffeur.
         /// Un ID unique lui est assigné.
         /// </summary>
         /// <param name="commande">La commande à ajouter.</param>
         /// <exception cref="ArgumentNullException">Lancée si la commande est null.</exception>
-        /// <exception cref="InvalidOperationException">Lancée si la commande a déjà un ID ou si l'ajout échoue.</exception>
+        /// <exception cref="InvalidOperationException">Lancée si la commande a déjà un ID, si l'ajout échoue ou si le chauffeur n'est pas disponible.</exception>
         public void AjouterCommande(Commande commande)
         {
             if (commande == null)
                 throw new ArgumentNullException(nameof(commande), "La commande à ajouter ne peut pas être null.");
+
+            // Vérifier la disponibilité du chauffeur
+            if (commande.Chauffeur != null && !Commande.EstChauffeurDisponible(this, commande.Chauffeur, commande.DateLivraison))
+            {
+                throw new InvalidOperationException($"Le chauffeur {commande.Chauffeur.Nom} n'est pas disponible à la date {commande.DateLivraison:dd/MM/yyyy}.");
+            }
 
             if (commande.Id == 0)
             {
@@ -44,7 +50,6 @@ namespace Projet.Modules
                 }
                 _prochainId = Math.Max(_prochainId, commande.Id + 1);
             }
-
 
             _commandes.Add(commande);
             Console.WriteLine($"Commande #{commande.Id} ajoutée avec succès.");
@@ -74,7 +79,7 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Modifie une commande existante en utilisant son ID.
+        /// Modifie une commande existante après vérification de la disponibilité du chauffeur.
         /// Les informations sont remplacées par celles de la nouvelle commande fournie,
         /// à l'exception de l'ID et de la DateCommande initiale.
         /// </summary>
@@ -90,12 +95,23 @@ namespace Projet.Modules
             Commande commandeAModifier = TrouverCommandeParId(id);
             if (commandeAModifier != null)
             {
+                // Vérifier la disponibilité du chauffeur si changé
+                if (nouvelleCommandeData.Chauffeur != null &&
+                    (commandeAModifier.Chauffeur?.NumeroSecuriteSociale != nouvelleCommandeData.Chauffeur.NumeroSecuriteSociale ||
+                     commandeAModifier.DateLivraison.Date != nouvelleCommandeData.DateLivraison.Date))
+                {
+                    if (!Commande.EstChauffeurDisponible(this, nouvelleCommandeData.Chauffeur, nouvelleCommandeData.DateLivraison))
+                    {
+                        throw new InvalidOperationException($"Le chauffeur {nouvelleCommandeData.Chauffeur.Nom} n'est pas disponible à la date {nouvelleCommandeData.DateLivraison:dd/MM/yyyy}.");
+                    }
+                }
+
                 commandeAModifier.Client = nouvelleCommandeData.Client;
                 commandeAModifier.Chauffeur = nouvelleCommandeData.Chauffeur;
+                commandeAModifier.Vehicule = nouvelleCommandeData.Vehicule;
                 commandeAModifier.VilleDepart = nouvelleCommandeData.VilleDepart;
                 commandeAModifier.VilleArrivee = nouvelleCommandeData.VilleArrivee;
-                commandeAModifier.DistanceCalculee = nouvelleCommandeData.DistanceCalculee;
-                commandeAModifier.Prix = nouvelleCommandeData.Prix;
+                commandeAModifier.DateLivraison = nouvelleCommandeData.DateLivraison;
 
                 Console.WriteLine($"Commande #{id} modifiée avec succès.");
                 SauvegarderCommandes();
@@ -168,7 +184,48 @@ namespace Projet.Modules
             return commandesClient;
         }
 
+        /// <summary>
+        /// Recherche et retourne toutes les commandes associées à un véhicule spécifique (par immatriculation).
+        /// </summary>
+        /// <param name="immatriculation">L'immatriculation du véhicule à rechercher.</param>
+        /// <returns>Une liste des commandes trouvées pour ce véhicule.</returns>
+        /// <remarks>La comparaison des immatriculations est insensible à la casse.</remarks>
+        public List<Commande> RechercherCommandesParVehicule(string immatriculation)
+        {
+            if (string.IsNullOrWhiteSpace(immatriculation))
+            {
+                Console.WriteLine("L'immatriculation ne peut pas être vide pour la recherche.");
+                return new List<Commande>();
+            }
 
+            var commandesVehicule = _commandes
+                .Where(c => c.Vehicule != null && c.Vehicule.Immatriculation.Equals(immatriculation, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!commandesVehicule.Any())
+            {
+                Console.WriteLine($"Aucune commande trouvée pour le véhicule '{immatriculation}'.");
+            }
+
+            return commandesVehicule;
+        }
+
+        /// <summary>
+        /// Recherche les commandes prévues pour une date de livraison donnée.
+        /// </summary>
+        public List<Commande> RechercherCommandesParDateLivraison(DateTime dateLivraison)
+        {
+            var commandesDate = _commandes
+                .Where(c => c.DateLivraison.Date == dateLivraison.Date)
+                .ToList();
+
+            if (!commandesDate.Any())
+            {
+                Console.WriteLine($"Aucune commande trouvée pour la date de livraison {dateLivraison:dd/MM/yyyy}.");
+            }
+
+            return commandesDate;
+        }
 
         /// <summary>
         /// Retourne une copie de la liste de toutes les commandes.
@@ -179,7 +236,6 @@ namespace Projet.Modules
         {
             return new List<Commande>(_commandes);
         }
-
 
         /// <summary>
         /// Sauvegarde la liste actuelle des commandes dans un fichier JSON.

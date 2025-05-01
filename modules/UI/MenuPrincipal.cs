@@ -23,8 +23,9 @@ namespace Projet.Modules
                 Console.WriteLine("2. Gestion des Commandes");
                 Console.WriteLine("3. Gestion des Salariés");
                 Console.WriteLine("4. Gestion des Graphes");
-                Console.WriteLine("5. Statistiques");
-                Console.WriteLine("6. Quitter");
+                Console.WriteLine("5. Gestion des Véhicules");
+                Console.WriteLine("6. Statistiques");
+                Console.WriteLine("7. Quitter");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
@@ -43,9 +44,12 @@ namespace Projet.Modules
                         _sousMenus.AfficherMenuGraphes();
                         break;
                     case "5":
-                        _sousMenus.AfficherMenuStatistiques();
+                        _sousMenus.AfficherMenuVehicules();
                         break;
                     case "6":
+                        _sousMenus.AfficherMenuStatistiques();
+                        break;
+                    case "7":
                         continuer = false;
                         break;
                     default:

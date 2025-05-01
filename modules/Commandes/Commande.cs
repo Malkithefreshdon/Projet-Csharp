@@ -1,39 +1,34 @@
 using System;
-
-
+using System.Linq;
 
 namespace Projet.Modules
 {
     /// <summary>
     /// Représente une commande de livraison dans le système TransConnect.
     /// Contient les informations sur le client, le chauffeur, l'itinéraire,
-    /// la distance, le prix et la date de la commande.
+    /// la distance, le prix et les dates de la commande.
     /// </summary>
     public class Commande
     {
         public int Id { get; private set; }
         public Client Client { get; set; }
         public Salarie Chauffeur { get; set; }
+        public Vehicule Vehicule { get; set; }
         public Ville VilleDepart { get; set; }
         public Ville VilleArrivee { get; set; }
         public DateTime DateCommande { get; private set; }
-        public double Prix { get; set; }
-        public double DistanceCalculee { get; set; }
+        public DateTime DateLivraison { get; set; }
+        public double Prix { get; private set; }
+        public double DistanceCalculee { get; private set; }
+
+        // Constantes pour le calcul du prix
+        private const double TAUX_BASE_KM = 1.5; // Prix de base par kilomètre
+        private const double COEFFICIENT_SALAIRE = 0.001; // Coefficient pour le calcul du taux kilométrique basé sur le salaire
 
         /// <summary>
         /// Constructeur principal pour créer une nouvelle instance de Commande.
-        /// L'ID est initialisé à 0 (sera défini par CommandeManager) et la DateCommande est mise à l'heure actuelle.
         /// </summary>
-        /// <param name="client">Le client associé à la commande.</param>
-        /// <param name="chauffeur">Le salarié (chauffeur) assigné (peut être null initialement si assigné plus tard).</param>
-        /// <param name="villeDepart">La ville de départ du trajet.</param>
-        /// <param name="villeArrivee">La ville d'arrivée du trajet.</param>
-        /// <param name="distance">La distance calculée pour ce trajet (ex: via Dijkstra).</param>
-        /// <param name="prix">Le prix estimé ou final de la commande.</param>
-        /// <exception cref="ArgumentNullException">Lancée si client, villeDepart ou villeArrivee est null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Lancée si distance ou prix sont négatifs.</exception>
-        /// <exception cref="ArgumentException">Lancée si villeDepart et villeArrivee sont identiques.</exception>
-        public Commande(Client client, Salarie chauffeur, Ville villeDepart, Ville villeArrivee, double distance, double prix)
+        public Commande(Client client, Salarie chauffeur, Vehicule vehicule, Ville villeDepart, Ville villeArrivee, DateTime dateLivraison)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client), "Le client ne peut pas être null.");
@@ -41,44 +36,97 @@ namespace Projet.Modules
                 throw new ArgumentNullException(nameof(villeDepart), "La ville de départ ne peut pas être null.");
             if (villeArrivee == null)
                 throw new ArgumentNullException(nameof(villeArrivee), "La ville d'arrivée ne peut pas être null.");
-
-            if (distance < 0)
-                throw new ArgumentOutOfRangeException(nameof(distance), "La distance ne peut pas être négative.");
-            if (prix < 0)
-                throw new ArgumentOutOfRangeException(nameof(prix), "Le prix ne peut pas être négatif.");
             if (villeDepart.Equals(villeArrivee))
                 throw new ArgumentException("La ville de départ et la ville d'arrivée ne peuvent pas être identiques.");
+            if (dateLivraison < DateTime.Now.Date)
+                throw new ArgumentException("La date de livraison ne peut pas être dans le passé.");
 
             Id = 0;
             Client = client;
             Chauffeur = chauffeur;
+            Vehicule = vehicule;
             VilleDepart = villeDepart;
             VilleArrivee = villeArrivee;
             DateCommande = DateTime.Now;
+            DateLivraison = dateLivraison.Date; // On ne garde que la date, pas l'heure
+
+            // Calcul de la distance avec Dijkstra
+            var grapheService = new GrapheService(new GrapheListe(true));
+            grapheService.ChargerGrapheDepuisXlsx("modules/Ressources/distances_villes_france.xlsx");
+            var (chemin, distance) = grapheService.Dijkstra(villeDepart, villeArrivee);
+            DistanceCalculee = distance;
+
+            // Calcul du prix
+            CalculerPrix();
+        }
+
+        /// <summary>
+        /// Constructeur pour la désérialisation JSON
+        /// </summary>
+        public Commande(int id, Client client, Salarie chauffeur, Vehicule vehicule, Ville villeDepart, 
+                       Ville villeArrivee, DateTime dateCommande, DateTime dateLivraison, double distance, double prix)
+        {
+            Id = id;
+            Client = client;
+            Chauffeur = chauffeur;
+            Vehicule = vehicule;
+            VilleDepart = villeDepart;
+            VilleArrivee = villeArrivee;
+            DateCommande = dateCommande;
+            DateLivraison = dateLivraison;
             DistanceCalculee = distance;
             Prix = prix;
         }
 
         /// <summary>
-        /// Constructeur utilisé spécifiquement pour la désérialisation (ex: chargement depuis un fichier JSON).
-        /// Permet de recréer un objet Commande avec son ID et sa DateCommande d'origine.
-        /// Appelle le constructeur principal pour initialiser les autres champs et effectuer les validations.
+        /// Calcule le prix de la commande en fonction du véhicule et du chauffeur
         /// </summary>
-        /// <param name="id">L'identifiant unique original de la commande.</param>
-        /// <param name="client">Le client associé.</param>
-        /// <param name="chauffeur">Le chauffeur assigné.</param>
-        /// <param name="villeDepart">La ville de départ.</param>
-        /// <param name="villeArrivee">La ville d'arrivée.</param>
-        /// <param name="dateCommande">La date et heure originales de la commande.</param>
-        /// <param name="distance">La distance calculée.</param>
-        /// <param name="prix">Le prix de la commande.</param>
-        public Commande(int id, Client client, Salarie chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
-            : this(client, chauffeur, villeDepart, villeArrivee, distance, prix) 
+        private void CalculerPrix()
         {
-            Id = id;
-            DateCommande = dateCommande;
+            double tauxKilometrique = TAUX_BASE_KM;
+
+            // Ajustement en fonction du salaire du chauffeur si présent
+            if (Chauffeur != null)
+            {
+                tauxKilometrique += (double)(Chauffeur.Salaire * (decimal)COEFFICIENT_SALAIRE);
+            }
+
+            // Ajustement en fonction du type de véhicule si présent
+            if (Vehicule != null)
+            {
+                // Majoration en fonction du poids maximal du véhicule
+                tauxKilometrique += Vehicule.PoidsMaximal * 0.1;
+
+                // Majorations spécifiques selon le type de véhicule
+                switch (Vehicule)
+                {
+                    case CamionFrigorifique _:
+                        tauxKilometrique *= 1.3; // +30% pour les camions frigorifiques
+                        break;
+                    case CamionCiterne _:
+                        tauxKilometrique *= 1.25; // +25% pour les camions citernes
+                        break;
+                    case PoidsLourd _:
+                        tauxKilometrique *= 1.2; // +20% pour les poids lourds
+                        break;
+                }
+            }
+
+            Prix = DistanceCalculee * tauxKilometrique;
         }
 
+        /// <summary>
+        /// Vérifie si un chauffeur est disponible pour une date de livraison donnée
+        /// </summary>
+        public static bool EstChauffeurDisponible(CommandeManager manager, Salarie chauffeur, DateTime dateLivraison)
+        {
+            if (chauffeur == null) return false;
+
+            var commandes = manager.GetToutesLesCommandes();
+            return !commandes.Any(c => 
+                c.Chauffeur?.NumeroSecuriteSociale == chauffeur.NumeroSecuriteSociale && 
+                c.DateLivraison.Date == dateLivraison.Date);
+        }
 
         /// <summary>
         /// Fournit une représentation textuelle formatée de la commande.
@@ -89,12 +137,16 @@ namespace Projet.Modules
         {
             string clientInfo = Client?.ToString() ?? "Client non spécifié";
             string chauffeurInfo = Chauffeur?.ToString() ?? "Chauffeur non assigné";
+            string vehiculeInfo = Vehicule?.GetDescription() ?? "Véhicule non assigné";
             string departInfo = VilleDepart?.Nom ?? "Ville départ invalide";
             string arriveeInfo = VilleArrivee?.Nom ?? "Ville arrivée invalide";
 
-            return $"Commande #{Id} [{DateCommande:dd/MM/yyyy HH:mm}]\n" +
+            return $"Commande #{Id}\n" +
+                   $"  Date commande: {DateCommande:dd/MM/yyyy HH:mm}\n" +
+                   $"  Date livraison: {DateLivraison:dd/MM/yyyy}\n" +
                    $"  Client:    {clientInfo}\n" +
                    $"  Chauffeur: {chauffeurInfo}\n" +
+                   $"  Véhicule:  {vehiculeInfo}\n" +
                    $"  Trajet:    {departInfo} -> {arriveeInfo}\n" +
                    $"  Distance:  {DistanceCalculee:F2} km\n" +
                    $"  Prix:      {Prix:C2}";
