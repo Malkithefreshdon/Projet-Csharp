@@ -11,11 +11,12 @@ namespace Projet.Modules
     {
         private readonly Dictionary<string, Salarie> _tousLesSalaries;
         private OrganigrammeNaire _organigramme;
-
-        public string FichierSauvegarde { get; set; } = "Ressources/salaries.json";
+        private readonly string _jsonPath;
 
         public SalarieManager()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "salaries.json");
             _tousLesSalaries = new Dictionary<string, Salarie>(StringComparer.OrdinalIgnoreCase);
             _organigramme = new OrganigrammeNaire();
             ChargerSalariesEtOrganigramme();
@@ -354,7 +355,7 @@ namespace Projet.Modules
         /// </summary>
         public void SauvegarderSalariesEtOrganigramme(string cheminFichier = null)
         {
-            string fichier = cheminFichier ?? FichierSauvegarde;
+            string fichier = cheminFichier ?? _jsonPath;
             try
             {
                 var options = new JsonSerializerOptions
@@ -376,7 +377,7 @@ namespace Projet.Modules
         /// </summary>
         public void ChargerSalariesEtOrganigramme(string cheminFichier = null)
         {
-            string fichier = cheminFichier ?? FichierSauvegarde;
+            string fichier = cheminFichier ?? _jsonPath;
             if (!File.Exists(fichier))
             {
                 Console.WriteLine($"Fichier de sauvegarde {fichier} non trouvé. Aucun salarié chargé.");

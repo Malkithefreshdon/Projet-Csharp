@@ -9,11 +9,14 @@ namespace Projet.Modules
     public class MaintenanceManager
     {
         private List<MaintenanceRecord> _maintenanceRecords;
-        private readonly string _maintenanceJsonPath = "Ressources/maintenance.json";
-        private readonly string _vehiculesJsonPath = "Ressources/vehicules.json";
+        private readonly string _maintenanceJsonPath;
+        private readonly string _vehiculesJsonPath;
 
         public MaintenanceManager()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _maintenanceJsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "maintenance.json");
+            _vehiculesJsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "vehicules.json");
             _maintenanceRecords = ChargerMaintenanceRecords();
         }
 

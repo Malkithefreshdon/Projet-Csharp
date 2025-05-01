@@ -12,9 +12,10 @@ namespace Projet.Modules
         private readonly string _jsonFilePath;
         private List<Vehicule> _vehicules;
 
-        public VehiculeManager(string jsonFilePath = "Ressources/vehicules.json")
+        public VehiculeManager(string jsonFilePath = null)
         {
-            _jsonFilePath = jsonFilePath;
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "vehicules.json");
             ChargerVehicules();
         }
 

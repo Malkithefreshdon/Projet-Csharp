@@ -10,11 +10,12 @@ namespace Projet.Modules
     {
         private List<Commande> _commandes;
         private int _prochainId;
-
-        public string FichierSauvegarde { get; set; } = "Ressources/commandes.json"; 
+        private readonly string _jsonPath;
 
         public CommandeManager()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "commandes.json");
             _commandes = new List<Commande>();
             ChargerCommandes();
             _prochainId = _commandes.Any() ? _commandes.Max(c => c.Id) + 1 : 1;
@@ -243,15 +244,12 @@ namespace Projet.Modules
         /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise FichierSauvegarde.</param>
         public void SauvegarderCommandes(string cheminFichier = null)
         {
-            string fichier = cheminFichier ?? FichierSauvegarde;
+            string fichier = cheminFichier ?? _jsonPath;
             try
             {
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
-                    // Gérer les références circulaires si Client/Chauffeur ont des liens complexes
-                    // ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
-          
                 };
 
                 string jsonString = JsonSerializer.Serialize(_commandes, options);
@@ -271,7 +269,7 @@ namespace Projet.Modules
         /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise FichierSauvegarde.</param>
         public void ChargerCommandes(string cheminFichier = null)
         {
-            string fichier = cheminFichier ?? FichierSauvegarde;
+            string fichier = cheminFichier ?? _jsonPath;
             if (File.Exists(fichier))
             {
                 try

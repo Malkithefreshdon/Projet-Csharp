@@ -1,0 +1,12 @@
+{
+  "Solde": 150000,
+  "Transactions": [
+    {
+      "Date": "2025-04-01T20:32:05.040532+02:00",
+      "Montant": 150000,
+      "Type": "Cr\u00E9dit",
+      "Description": "Capital initial",
+      "Categorie": "Capital"
+    }
+  ]
+}

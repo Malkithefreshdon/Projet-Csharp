@@ -12,7 +12,7 @@ namespace Projet.Modules
     /// </summary>
     public class FinanceSimple
     {
-        private string _jsonFilePath;
+        private readonly string _jsonFilePath;
         private double _solde;
         private List<TransactionSimple> _transactions;
         private readonly CommandeManager _commandeManager;
@@ -21,7 +21,7 @@ namespace Projet.Modules
         public FinanceSimple(string jsonFilePath = null, CommandeManager commandeManager = null, SalarieManager salarieManager = null)
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            _jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "Ressources", "finance.json");
+            _jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "finance.json");
             _transactions = new List<TransactionSimple>();
             _commandeManager = commandeManager ?? new CommandeManager();
             _salarieManager = salarieManager ?? new SalarieManager();

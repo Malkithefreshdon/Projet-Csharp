@@ -9,10 +9,12 @@ namespace Projet.Modules
     public class ClientManager
     {
         private List<Client> _clients;
-        private readonly string _jsonPath = "ressources/clients.json";
+        private readonly string _jsonPath;
 
         public ClientManager()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "ressources", "clients.json");
             ChargerClients();
         }
 
