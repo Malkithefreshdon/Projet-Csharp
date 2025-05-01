@@ -1,16 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Text.Json;
 
 namespace Projet.Modules
 {
     public class ClientManager
     {
         private List<Client> _clients;
+        private readonly string _jsonPath = "ressources/clients.json";
 
         public ClientManager()
         {
-            _clients = new List<Client>();
+            ChargerClients();
+        }
+
+        public void ChargerClients()
+        {
+            if (File.Exists(_jsonPath))
+            {
+                var jsonString = File.ReadAllText(_jsonPath);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var clientsData = JsonSerializer.Deserialize<ClientsData>(jsonString, options);
+                _clients = clientsData.Clients;
+            }
+            else
+            {
+                _clients = new List<Client>();
+                SauvegarderClients();
+            }
+        }
+
+        public void SauvegarderClients()
+        {
+            var clientsData = new ClientsData { Clients = _clients };
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+            var jsonString = JsonSerializer.Serialize(clientsData, options);
+            File.WriteAllText(_jsonPath, jsonString);
         }
 
         public void AjouterClient(string numeroSS, string nom, string prenom, DateTime dateNaissance, string adresse)
@@ -23,6 +56,7 @@ namespace Projet.Modules
 
             var client = new Client(numeroSS, nom, prenom, dateNaissance, adresse);
             _clients.Add(client);
+            SauvegarderClients();
         }
 
         public bool SupprimerClient(string numeroSS)
@@ -31,6 +65,7 @@ namespace Projet.Modules
             if (client != null)
             {
                 _clients.Remove(client);
+                SauvegarderClients();
                 return true;
             }
             return false;
@@ -55,6 +90,7 @@ namespace Projet.Modules
                 client.Adresse = adresse;
                 client.Email = email;
                 client.Telephone = telephone;
+                SauvegarderClients();
             }
             else
             {
@@ -68,11 +104,17 @@ namespace Projet.Modules
             if (client != null)
             {
                 client.AjouterCommande(commande);
+                SauvegarderClients();
             }
             else
             {
                 throw new ArgumentException($"Client avec le N°SS {numeroSS} non trouvé");
             }
         }
+    }
+
+    public class ClientsData
+    {
+        public List<Client> Clients { get; set; }
     }
 }
