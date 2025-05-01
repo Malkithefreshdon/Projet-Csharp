@@ -251,6 +251,7 @@ namespace Projet.Modules
                     WriteIndented = true,
                     // Gérer les références circulaires si Client/Chauffeur ont des liens complexes
                     // ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
+          
                 };
 
                 string jsonString = JsonSerializer.Serialize(_commandes, options);

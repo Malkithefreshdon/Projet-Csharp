@@ -961,8 +961,8 @@ namespace Projet.Modules
             // Modification du chauffeur
             Console.Write("\nNouveau numéro de sécurité sociale du chauffeur : ");
             string nouveauChauffeurSS = Console.ReadLine();
-            Salarie nouveauChauffeur = !string.IsNullOrWhiteSpace(nouveauChauffeurSS) 
-                ? _salarieManager.RechercherParId(nouveauChauffeurSS) 
+            Salarie nouveauChauffeur = !string.IsNullOrWhiteSpace(nouveauChauffeurSS)
+                ? _salarieManager.RechercherParId(nouveauChauffeurSS)
                 : commande.Chauffeur;
 
             // Modification du véhicule
@@ -1143,7 +1143,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Commandes par ville");
-            
+
             var stats = _statistiqueService.ObtenirCommandesParVille();
             foreach (var stat in stats)
             {
@@ -1156,7 +1156,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Moyennes");
-            
+
             var (moyenneDistance, moyennePrix) = _statistiqueService.ObtenirMoyennes();
             Console.WriteLine($"Moyenne des distances: {moyenneDistance:F2} km");
             Console.WriteLine($"Moyenne des prix: {moyennePrix:F2} €");
@@ -1167,7 +1167,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Chauffeur le plus actif");
-            
+
             var chauffeur = _statistiqueService.ObtenirChauffeurPlusActif();
             if (chauffeur != null)
             {
@@ -1185,7 +1185,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Commandes entre deux dates");
-            
+
             Console.Write("Date de début (JJ/MM/AAAA) : ");
             if (DateTime.TryParse(Console.ReadLine(), out DateTime dateDebut))
             {
@@ -1316,7 +1316,7 @@ namespace Projet.Modules
             Console.WriteLine("1. Par nom");
             Console.WriteLine("2. Par numéro de sécurité sociale");
             Console.Write("\nVotre choix : ");
-            
+
             var choix = Console.ReadLine();
             if (choix == "1")
             {
@@ -1360,13 +1360,13 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout d'un Salarié");
-            
+
             Console.WriteLine("1. Ajout complet d'un salarié");
             Console.WriteLine("2. Ajout rapide d'un salarié de test");
             Console.Write("\nVotre choix : ");
-            
+
             string choix = Console.ReadLine();
-            
+
             switch (choix)
             {
                 case "1":
@@ -1413,7 +1413,7 @@ namespace Projet.Modules
             Console.WriteLine("3. Chauffeur");
             Console.WriteLine("4. Autre (à saisir)");
             Console.Write("\nVotre choix : ");
-            
+
             string poste;
             switch (Console.ReadLine()?.Trim())
             {
@@ -1456,7 +1456,7 @@ namespace Projet.Modules
                 case "1":
                     // Afficher la liste des managers potentiels
                     var managers = _salarieManager.GetTousLesSalaries()
-                        .Where(s => s.Poste.Contains("Directeur", StringComparison.OrdinalIgnoreCase) || 
+                        .Where(s => s.Poste.Contains("Directeur", StringComparison.OrdinalIgnoreCase) ||
                                   s.Poste.Contains("Chef", StringComparison.OrdinalIgnoreCase))
                         .ToList();
 
@@ -1565,10 +1565,10 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout Complet d'un Salarié");
-            
+
             Console.Write("Numéro de sécurité sociale : ");
             string numeroSS = Console.ReadLine();
-            
+
             if (string.IsNullOrWhiteSpace(numeroSS))
             {
                 Console.WriteLine("Le numéro de sécurité sociale ne peut pas être vide.");
@@ -1582,10 +1582,10 @@ namespace Projet.Modules
                 Console.ReadKey();
                 return;
             }
-            
+
             Console.Write("Nom : ");
             string nom = Console.ReadLine();
-            
+
             Console.Write("Prénom : ");
             string prenom = Console.ReadLine();
 
@@ -1599,7 +1599,7 @@ namespace Projet.Modules
                 Console.ReadKey();
                 return;
             }
-            
+
             Console.Write("Date d'entrée dans la société (JJ/MM/AAAA) : ");
             if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateEntree))
             {
@@ -1616,7 +1616,7 @@ namespace Projet.Modules
 
             Console.Write("Téléphone : ");
             string telephone = Console.ReadLine();
-            
+
             Console.Write("Salaire : ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal salaire))
             {
@@ -1624,7 +1624,7 @@ namespace Projet.Modules
                 Console.ReadKey();
                 return;
             }
-            
+
             Console.Write("Numéro de sécurité sociale du manager (laisser vide si aucun) : ");
             string managerNumeroSS = Console.ReadLine();
 
@@ -1660,7 +1660,7 @@ namespace Projet.Modules
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Suppression d'un Salarié");
-            
+
             Console.Write("Numéro de sécurité sociale : ");
             string numeroSS = Console.ReadLine();
 
@@ -1674,7 +1674,7 @@ namespace Projet.Modules
 
             Console.WriteLine($"\nVous allez supprimer le salarié suivant :");
             AfficherDetailsSalarie(salarie);
-            
+
             Console.Write("\nÊtes-vous sûr de vouloir supprimer ce salarié ? (O/N) : ");
             if (Console.ReadLine()?.ToUpper() != "O")
             {
@@ -2011,7 +2011,7 @@ namespace Projet.Modules
                 case "1":
                     Console.Write("\nEntrez la marque : ");
                     string marque = Console.ReadLine();
-                    resultats = _vehiculeManager.RechercherVehicules(v => 
+                    resultats = _vehiculeManager.RechercherVehicules(v =>
                         v.Marque.Contains(marque, StringComparison.OrdinalIgnoreCase));
                     break;
 
@@ -2038,6 +2038,251 @@ namespace Projet.Modules
                 Console.WriteLine("\nAucun véhicule trouvé.");
             }
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+        public void AfficherMenuFidelite()
+        {
+            bool continuer = true;
+            SystemeFidelite fidelite = new SystemeFidelite();
+
+            while (continuer)
+            {
+                Console.Clear();
+                ConsoleHelper.AfficherTitre("Programme de Fidélité");
+                Console.WriteLine("1. Consulter le statut d'un client");
+                Console.WriteLine("2. Simuler une remise");
+                Console.WriteLine("0. Retour");
+                Console.Write("\nVotre choix : ");
+
+                switch (Console.ReadLine())
+                {
+                    case "1":
+                        Console.Clear();
+                        Console.Write("Numéro de sécurité sociale du client : ");
+                        string numeroSS = Console.ReadLine();
+                        Client client = _clientManager.RechercherClient(numeroSS);
+
+                        if (client != null)
+                            fidelite.AfficherInfos(client);
+                        else
+                            Console.WriteLine("Client non trouvé.");
+
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "2":
+                        Console.Clear();
+                        Console.Write("Numéro de sécurité sociale du client : ");
+                        string num = Console.ReadLine();
+                        Client c = _clientManager.RechercherClient(num);
+
+                        if (c == null)
+                        {
+                            Console.WriteLine("Client non trouvé.");
+                            Console.ReadKey();
+                            break;
+                        }
+
+                        Console.Write("Prix de la commande : ");
+                        if (double.TryParse(Console.ReadLine(), out double prix))
+                            fidelite.AfficherRecapitulatif(c, prix);
+                        else
+                            Console.WriteLine("Prix invalide.");
+
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "0":
+                        continuer = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Choix invalide.");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+        public void AfficherMenuFinance()
+        {
+            // Créer une instance avec les managers existants pour accéder aux données
+            FinanceSimple finance = new FinanceSimple(null, _commandeManager, _salarieManager);
+            bool continuer = true;
+
+            while (continuer)
+            {
+                Console.Clear();
+                ConsoleHelper.AfficherTitre("Gestion Financière");
+                Console.WriteLine("1. Tableau de bord financier");
+                Console.WriteLine("2. Historique des transactions");
+                Console.WriteLine("3. Ajouter une entrée d'argent");
+                Console.WriteLine("4. Ajouter une sortie d'argent");
+                Console.WriteLine("5. Synchroniser avec les commandes");
+                Console.WriteLine("6. Générer transactions de salaires");
+                Console.WriteLine("7. Générer rapports financiers");
+                Console.WriteLine("0. Retour");
+                Console.Write("\nVotre choix : ");
+
+                switch (Console.ReadLine())
+                {
+                    case "1":
+                        finance.AfficherTableauDeBord();
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "2":
+                        finance.AfficherHistorique();
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "3":
+                        AjouterEntreeArgent(finance);
+                        break;
+
+                    case "4":
+                        AjouterSortieArgent(finance);
+                        break;
+
+                    case "5":
+                        finance.SynchroniserAvecCommandes();
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "6":
+                        finance.GenererTransactionsSalaires();
+                        Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+
+                    case "7":
+                        finance.GenererRapports();
+                        break;
+
+                    case "0":
+                        continuer = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Choix invalide.");
+                        Console.WriteLine("Appuyez sur une touche pour continuer...");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+
+        private void AjouterEntreeArgent(FinanceSimple finance)
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Ajouter une Entrée d'Argent");
+
+            Console.Write("Montant (€) : ");
+            if (!double.TryParse(Console.ReadLine(), out double montant) || montant <= 0)
+            {
+                Console.WriteLine("Montant invalide. Opération annulée.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Choix de la catégorie
+            Console.WriteLine("\nCatégorie :");
+            Console.WriteLine("1. Transport");
+            Console.WriteLine("2. Vente de véhicule");
+            Console.WriteLine("3. Subvention");
+            Console.WriteLine("4. Autre");
+            Console.Write("\nVotre choix : ");
+
+            string categorie;
+            switch (Console.ReadLine())
+            {
+                case "1": categorie = "Transport"; break;
+                case "2": categorie = "Vente de véhicule"; break;
+                case "3": categorie = "Subvention"; break;
+                case "4":
+                    Console.Write("Précisez la catégorie : ");
+                    categorie = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(categorie))
+                        categorie = "Divers";
+                    break;
+                default: categorie = "Divers"; break;
+            }
+
+            Console.Write("Description : ");
+            string description = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = $"Entrée d'argent - {categorie}";
+            }
+
+            // Ajouter la transaction
+            finance.AjouterTransaction(montant, "Crédit", description, categorie);
+
+            Console.WriteLine($"\nTransaction de {montant:N2} € ajoutée avec succès!");
+            Console.WriteLine("Appuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+
+        private void AjouterSortieArgent(FinanceSimple finance)
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Ajouter une Sortie d'Argent");
+
+            Console.Write("Montant (€) : ");
+            if (!double.TryParse(Console.ReadLine(), out double montant) || montant <= 0)
+            {
+                Console.WriteLine("Montant invalide. Opération annulée.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Choix de la catégorie
+            Console.WriteLine("\nCatégorie :");
+            Console.WriteLine("1. Salaires");
+            Console.WriteLine("2. Carburant");
+            Console.WriteLine("3. Maintenance");
+            Console.WriteLine("4. Achat de véhicule");
+            Console.WriteLine("5. Assurance");
+            Console.WriteLine("6. Taxes");
+            Console.WriteLine("7. Autre");
+            Console.Write("\nVotre choix : ");
+
+            string categorie;
+            switch (Console.ReadLine())
+            {
+                case "1": categorie = "Salaires"; break;
+                case "2": categorie = "Carburant"; break;
+                case "3": categorie = "Maintenance"; break;
+                case "4": categorie = "Achat de véhicule"; break;
+                case "5": categorie = "Assurance"; break;
+                case "6": categorie = "Taxes"; break;
+                case "7":
+                    Console.Write("Précisez la catégorie : ");
+                    categorie = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(categorie))
+                        categorie = "Divers";
+                    break;
+                default: categorie = "Divers"; break;
+            }
+
+            Console.Write("Description : ");
+            string description = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = $"Sortie d'argent - {categorie}";
+            }
+
+            // Ajouter la transaction
+            finance.AjouterTransaction(montant, "Débit", description, categorie);
+
+            Console.WriteLine($"\nTransaction de {montant:N2} € ajoutée avec succès!");
+            Console.WriteLine("Appuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
     }

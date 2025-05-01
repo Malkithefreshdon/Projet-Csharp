@@ -25,7 +25,9 @@ namespace Projet.Modules
                 Console.WriteLine("4. Gestion des Graphes");
                 Console.WriteLine("5. Gestion des Véhicules");
                 Console.WriteLine("6. Statistiques");
-                Console.WriteLine("7. Quitter");
+                Console.WriteLine("7. Programme de Fidélité");
+                Console.WriteLine("8. Finance");  
+                Console.WriteLine("9. Quitter");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
@@ -50,6 +52,12 @@ namespace Projet.Modules
                         _sousMenus.AfficherMenuStatistiques();
                         break;
                     case "7":
+                        _sousMenus.AfficherMenuFidelite();
+                        break;
+                    case "8":
+                        _sousMenus.AfficherMenuFinance();  
+                        break;
+                    case "9":
                         continuer = false;
                         break;
                     default:
