@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,18 +10,15 @@ namespace Projet.Modules
     public class SalarieManager
     {
         private readonly Dictionary<string, Salarie> _tousLesSalaries;
-        private readonly Dictionary<string, Organigramme> _noeudsOrganigramme; 
-
-        public Organigramme Racine { get; private set; } 
+        private OrganigrammeNaire _organigramme;
 
         public string FichierSauvegarde { get; set; } = "Ressources/salaries.json";
 
         public SalarieManager()
         {
             _tousLesSalaries = new Dictionary<string, Salarie>(StringComparer.OrdinalIgnoreCase);
-            _noeudsOrganigramme = new Dictionary<string, Organigramme>(StringComparer.OrdinalIgnoreCase);
-            Racine = null;
-            ChargerSalariesEtOrganigramme(); 
+            _organigramme = new OrganigrammeNaire();
+            ChargerSalariesEtOrganigramme();
         }
 
         /// <summary>
@@ -40,44 +36,43 @@ namespace Projet.Modules
 
             _tousLesSalaries.Add(nouveauSalarie.NumeroSecuriteSociale, nouveauSalarie);
 
-            Organigramme nouveauNoeud = new Organigramme(nouveauSalarie);
-            _noeudsOrganigramme.Add(nouveauSalarie.NumeroSecuriteSociale, nouveauNoeud);
-
             if (!string.IsNullOrWhiteSpace(managerNumeroSS))
             {
-                nouveauSalarie.ManagerNumeroSS = managerNumeroSS; 
-                if (_noeudsOrganigramme.TryGetValue(managerNumeroSS, out Organigramme managerNoeud))
+                nouveauSalarie.ManagerNumeroSS = managerNumeroSS;
+                var noeudManager = _organigramme.TrouverSalarie(managerNumeroSS);
+                if (noeudManager != null)
                 {
-                    // Vérifier que le manager est bien un Responsable ? Optionnel.
-                    // if (managerNoeud.Salarie is Responsable)
-                    // {
-                    managerNoeud.AjouterSubordonne(nouveauNoeud);
-                    // } else { Console.WriteLine($"Avertissement: {managerNoeud.Salarie.Nom} n'est pas un Responsable."); }
+                    _organigramme.InsererSubordonne(noeudManager, nouveauSalarie);
                 }
                 else
                 {
                     Console.WriteLine($"Avertissement: Manager avec ID {managerNumeroSS} non trouvé pour {nouveauSalarie}. Sera détaché.");
-                    
                 }
             }
-            else
+            else if (_organigramme.Racine == null)
             {
-                if (Racine == null && _noeudsOrganigramme.Count == 1)
-                {
-                    Racine = nouveauNoeud;
-                    Console.WriteLine($"{nouveauSalarie} défini comme racine.");
-                }
-                nouveauSalarie.ManagerNumeroSS = null; 
+                _organigramme = new OrganigrammeNaire(nouveauSalarie);
+                Console.WriteLine($"{nouveauSalarie} défini comme racine.");
             }
 
             Console.WriteLine($"Salarié {nouveauSalarie.Prenom} {nouveauSalarie.Nom} ajouté.");
+            
+            // Sauvegarder les modifications dans le fichier JSON
+            try
+            {
+                SauvegarderSalariesEtOrganigramme();
+                Console.WriteLine("Les modifications ont été sauvegardées dans le fichier JSON.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Attention: Erreur lors de la sauvegarde dans le fichier JSON: {ex.Message}");
+            }
+            
             return true;
         }
 
-
         /// <summary>
         /// Supprime un salarié par son numéro de sécurité sociale.
-        /// Le supprime aussi de l'organigramme. Les subordonnés deviennent orphelins dans l'arbre.
         /// </summary>
         /// <returns>True si la suppression a réussi, False sinon.</returns>
         public bool SupprimerSalarie(string numeroSS)
@@ -88,34 +83,26 @@ namespace Projet.Modules
                 return false;
             }
 
+            // Supprimer de la liste des salariés
             _tousLesSalaries.Remove(numeroSS);
 
-            if (_noeudsOrganigramme.TryGetValue(numeroSS, out Organigramme noeudASupprimer))
-            {
-                if (!string.IsNullOrWhiteSpace(salarieASupprimer.ManagerNumeroSS) &&
-                    _noeudsOrganigramme.TryGetValue(salarieASupprimer.ManagerNumeroSS, out Organigramme parentNoeud))
-                {
-                    parentNoeud.SupprimerSubordonne(noeudASupprimer);
-                }
-                if (Racine == noeudASupprimer)
-                {
-                    Racine = null;
-                    Console.WriteLine("La racine de l'organigramme a été supprimée.");
-                }
-                _noeudsOrganigramme.Remove(numeroSS);
-            }
-
-            foreach (var salarie in _tousLesSalaries.Values)
-            {
-                if (salarie.ManagerNumeroSS == numeroSS)
-                {
-                    salarie.ManagerNumeroSS = null;
-                    Console.WriteLine($"Le salarié {salarie} est maintenant orphelin suite à la suppression de {numeroSS}.");
-                }
-            }
-
+            // Reconstruire l'organigramme sans le salarié supprimé
+            var salaries = _tousLesSalaries.Values.ToList();
+            _organigramme = OrganigrammeNaire.ConstruireDepuisListe(salaries);
 
             Console.WriteLine($"Salarié {salarieASupprimer.Prenom} {salarieASupprimer.Nom} supprimé.");
+
+            // Sauvegarder les modifications dans le fichier JSON
+            try
+            {
+                SauvegarderSalariesEtOrganigramme();
+                Console.WriteLine("Les modifications ont été sauvegardées dans le fichier JSON.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Attention: Erreur lors de la sauvegarde dans le fichier JSON: {ex.Message}");
+            }
+
             return true;
         }
 
@@ -125,7 +112,7 @@ namespace Projet.Modules
         public Salarie RechercherParId(string numeroSS)
         {
             _tousLesSalaries.TryGetValue(numeroSS, out Salarie salarie);
-            return salarie; 
+            return salarie;
         }
 
         /// <summary>
@@ -139,45 +126,25 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Affiche l'organigramme textuel à partir de la racine.
+        /// Affiche l'organigramme textuel.
         /// </summary>
         public void AfficherOrganigramme()
         {
             Console.WriteLine("\n--- Organigramme ---");
-            if (Racine == null)
+            if (_organigramme.Racine == null)
             {
-                if (_noeudsOrganigramme.Any())
+                if (_tousLesSalaries.Any())
                     Console.WriteLine("Racine non définie. Employés existent mais structure hiérarchique incomplète ou multiple racines.");
                 else
                     Console.WriteLine("Aucun salarié enregistré.");
                 return;
             }
-            AfficherNoeud(Racine, 0);
+            _organigramme.AfficherOrganigramme();
             Console.WriteLine("--- Fin Organigramme ---");
         }
 
-        private void AfficherNoeud(Organigramme noeud, int niveauIndentation)
-        {
-            StringBuilder indentation = new StringBuilder();
-            for (int i = 0; i < niveauIndentation; i++)
-            {
-                indentation.Append("  "); 
-            }
-            if (niveauIndentation > 0)
-            {
-                indentation.Append("└── ");
-            }
-
-            Console.WriteLine($"{indentation}{noeud.Salarie}"); 
-
-            foreach (var enfant in noeud.Enfants.OrderBy(n => n.Salarie.Nom))
-            {
-                AfficherNoeud(enfant, niveauIndentation + 1);
-            }
-        }
-
         /// <summary>
-        /// Sauvegarde la liste de tous les salariés (incluant l'info du manager) en JSON.
+        /// Sauvegarde la liste de tous les salariés en JSON.
         /// </summary>
         public void SauvegarderSalariesEtOrganigramme(string cheminFichier = null)
         {
@@ -186,7 +153,7 @@ namespace Projet.Modules
             {
                 var options = new JsonSerializerOptions
                 {
-                    WriteIndented = true,
+                    WriteIndented = true
                 };
                 string jsonString = JsonSerializer.Serialize(_tousLesSalaries.Values.ToList(), options);
                 File.WriteAllText(fichier, jsonString);
@@ -208,91 +175,53 @@ namespace Projet.Modules
             {
                 Console.WriteLine($"Fichier de sauvegarde {fichier} non trouvé. Aucun salarié chargé.");
                 _tousLesSalaries.Clear();
-                _noeudsOrganigramme.Clear();
-                Racine = null;
+                _organigramme = new OrganigrammeNaire();
                 return;
             }
 
             try
             {
                 string jsonString = File.ReadAllText(fichier);
-                var options = new JsonSerializerOptions
-                {
-                    // Gérer le polymorphisme si nécessaire (si pas d'attributs JsonDerivedType)
-                };
+                var options = new JsonSerializerOptions();
                 var salariesCharges = JsonSerializer.Deserialize<List<Salarie>>(jsonString, options);
 
                 _tousLesSalaries.Clear();
-                _noeudsOrganigramme.Clear();
-                Racine = null;
 
                 if (salariesCharges != null)
                 {
                     foreach (var salarie in salariesCharges)
                     {
-                        Salarie instanceCorrecte = salarie; 
-
-                        if (instanceCorrecte != null && !_tousLesSalaries.ContainsKey(instanceCorrecte.NumeroSecuriteSociale))
+                        if (!_tousLesSalaries.ContainsKey(salarie.NumeroSecuriteSociale))
                         {
-                            _tousLesSalaries.Add(instanceCorrecte.NumeroSecuriteSociale, instanceCorrecte);
-                            _noeudsOrganigramme.Add(instanceCorrecte.NumeroSecuriteSociale, new Organigramme(instanceCorrecte));
-                        }
-                        else { Console.WriteLine($"Avertissement: Salarié dupliqué ou invalide ignoré lors du chargement (ID: {salarie?.NumeroSecuriteSociale})."); }
-                    }
-
-                    foreach (var noeud in _noeudsOrganigramme.Values)
-                    {
-                        if (!string.IsNullOrWhiteSpace(noeud.Salarie.ManagerNumeroSS))
-                        {
-                            if (_noeudsOrganigramme.TryGetValue(noeud.Salarie.ManagerNumeroSS, out Organigramme managerNoeud))
-                            {
-                                managerNoeud.AjouterSubordonne(noeud);
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Avertissement lors du chargement: Manager {noeud.Salarie.ManagerNumeroSS} non trouvé pour {noeud.Salarie}.");
-                                noeud.Salarie.ManagerNumeroSS = null; // Rendre orphelin
-                            }
+                            _tousLesSalaries.Add(salarie.NumeroSecuriteSociale, salarie);
                         }
                         else
                         {
-                            if (Racine == null)
-                            {
-                                Racine = noeud;
-                                Console.WriteLine($"Racine définie: {Racine.Salarie}");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Avertissement: Multiples racines potentielles détectées. {noeud.Salarie} est aussi sans manager.");
-                            }
+                            Console.WriteLine($"Avertissement: Salarié dupliqué ignoré lors du chargement (ID: {salarie.NumeroSecuriteSociale}).");
                         }
                     }
+
+                    // Reconstruire l'organigramme
+                    _organigramme = OrganigrammeNaire.ConstruireDepuisListe(_tousLesSalaries.Values.ToList());
                     Console.WriteLine($"Salariés chargés depuis {fichier}. {_tousLesSalaries.Count} salariés récupérés.");
-                    if (Racine == null && _tousLesSalaries.Any())
-                    {
-                        Console.WriteLine("Avertissement: Aucun salarié racine trouvé après chargement.");
-                    }
                 }
                 else
                 {
                     Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté. Aucune donnée chargée.");
+                    _organigramme = new OrganigrammeNaire();
                 }
-
-
             }
             catch (JsonException jsonEx)
             {
                 Console.WriteLine($"Erreur de format JSON lors du chargement depuis {fichier}: {jsonEx.Message}");
-                _tousLesSalaries.Clear(); 
-                _noeudsOrganigramme.Clear();
-                Racine = null;
+                _tousLesSalaries.Clear();
+                _organigramme = new OrganigrammeNaire();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur générale lors du chargement des salariés depuis {fichier}: {ex.Message}");
                 _tousLesSalaries.Clear();
-                _noeudsOrganigramme.Clear();
-                Racine = null;
+                _organigramme = new OrganigrammeNaire();
             }
         }
 
@@ -302,6 +231,22 @@ namespace Projet.Modules
         public List<Salarie> GetTousLesSalaries()
         {
             return _tousLesSalaries.Values.ToList();
+        }
+
+        /// <summary>
+        /// Obtient les subordonnés directs d'un salarié.
+        /// </summary>
+        public List<Salarie> ObtenirSubordonnesDirects(string numeroSS)
+        {
+            return _organigramme.ObtenirSubordonnesDirects(numeroSS);
+        }
+
+        /// <summary>
+        /// Obtient les collègues d'un salarié.
+        /// </summary>
+        public List<Salarie> ObtenirCollegues(string numeroSS)
+        {
+            return _organigramme.ObtenirCollegues(numeroSS);
         }
     }
 }

@@ -220,7 +220,9 @@ namespace Projet.Modules
                 Console.WriteLine("2. Rechercher un salarié");
                 Console.WriteLine("3. Ajouter un salarié");
                 Console.WriteLine("4. Supprimer un salarié");
-                Console.WriteLine("5. Retour");
+                Console.WriteLine("5. Afficher les subordonnés d'un salarié");
+                Console.WriteLine("6. Afficher les collègues d'un salarié");
+                Console.WriteLine("7. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
@@ -239,6 +241,12 @@ namespace Projet.Modules
                         SupprimerSalarie();
                         break;
                     case "5":
+                        AfficherSubordonnes();
+                        break;
+                    case "6":
+                        AfficherCollegues();
+                        break;
+                    case "7":
                         continuer = false;
                         break;
                     default:
@@ -920,6 +928,7 @@ namespace Projet.Modules
             Console.Clear();
             ConsoleHelper.AfficherTitre("Organigramme");
             _salarieManager.AfficherOrganigramme();
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
 
@@ -934,35 +943,39 @@ namespace Projet.Modules
             var choix = Console.ReadLine();
             if (choix == "1")
             {
-                Console.Write("Nom du salarié : ");
+                Console.Write("\nNom du salarié : ");
                 string nom = Console.ReadLine();
                 var resultats = _salarieManager.RechercherParNom(nom);
                 if (resultats.Any())
                 {
+                    Console.WriteLine("\nSalariés trouvés :");
                     foreach (var salarie in resultats)
                     {
-                        Console.WriteLine(salarie);
+                        AfficherDetailsSalarie(salarie);
+                        Console.WriteLine("-----------------------------------");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Aucun salarié trouvé.");
+                    Console.WriteLine("\nAucun salarié trouvé.");
                 }
             }
             else if (choix == "2")
             {
-                Console.Write("Numéro de sécurité sociale : ");
+                Console.Write("\nNuméro de sécurité sociale : ");
                 string numeroSS = Console.ReadLine();
                 var salarie = _salarieManager.RechercherParId(numeroSS);
                 if (salarie != null)
                 {
-                    Console.WriteLine(salarie);
+                    Console.WriteLine("\nSalarié trouvé :");
+                    AfficherDetailsSalarie(salarie);
                 }
                 else
                 {
-                    Console.WriteLine("Aucun salarié trouvé.");
+                    Console.WriteLine("\nAucun salarié trouvé.");
                 }
             }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
 
@@ -971,39 +984,213 @@ namespace Projet.Modules
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout d'un Salarié");
             
-            Console.Write("Type (1: Responsable, 2: Livreur) : ");
-            string type = Console.ReadLine();
+            Console.WriteLine("1. Ajout complet d'un salarié");
+            Console.WriteLine("2. Ajout rapide d'un salarié de test");
+            Console.Write("\nVotre choix : ");
+            
+            string choix = Console.ReadLine();
+            
+            switch (choix)
+            {
+                case "1":
+                    AjouterSalarieComplet();
+                    break;
+                case "2":
+                    AjouterSalarieTest();
+                    break;
+                default:
+                    Console.WriteLine("Choix invalide.");
+                    Console.ReadKey();
+                    break;
+            }
+        }
+
+        private void AjouterSalarieTest()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Ajout Rapide d'un Salarié de Test");
+
+            Console.Write("Nom : ");
+            string nom = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(nom))
+            {
+                Console.WriteLine("Le nom ne peut pas être vide.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Prénom : ");
+            string prenom = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(prenom))
+            {
+                Console.WriteLine("Le prénom ne peut pas être vide.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("\nChoisissez le poste :");
+            Console.WriteLine("1. Directeur");
+            Console.WriteLine("2. Chef d'Équipe");
+            Console.WriteLine("3. Chauffeur");
+            Console.WriteLine("4. Autre (à saisir)");
+            Console.Write("\nVotre choix : ");
+            
+            string poste;
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    poste = "Directeur";
+                    break;
+                case "2":
+                    poste = "Chef d'Équipe";
+                    break;
+                case "3":
+                    poste = "Chauffeur";
+                    break;
+                case "4":
+                    Console.Write("Saisissez le poste : ");
+                    poste = Console.ReadLine();
+                    break;
+                default:
+                    Console.WriteLine("Choix invalide.");
+                    Console.ReadKey();
+                    return;
+            }
+
+            if (string.IsNullOrWhiteSpace(poste))
+            {
+                Console.WriteLine("Le poste ne peut pas être vide.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Générer un numéro de sécurité sociale unique
+            string numeroSS = $"TEST{DateTime.Now.ToString("yyMMddHHmmss")}";
+
+            var nouveauSalarie = new Salarie
+            {
+                NumeroSecuriteSociale = numeroSS,
+                Nom = nom,
+                Prenom = prenom,
+                Poste = poste,
+                DateNaissance = new DateTime(1990, 1, 1), // Date par défaut
+                DateEntreeSociete = DateTime.Now,
+                AdressePostale = "1 rue de Test, 75000 Paris",
+                AdresseMail = $"{prenom.ToLower()}.{nom.ToLower()}@test.com",
+                Telephone = "0123456789",
+                Salaire = 30000 // Salaire par défaut
+            };
+
+            Console.WriteLine("\nChoisissez un manager :");
+            Console.WriteLine("1. Ajouter sous un manager existant");
+            Console.WriteLine("2. Sans manager");
+            Console.Write("\nVotre choix : ");
+
+            string managerNumeroSS = null;
+            if (Console.ReadLine() == "1")
+            {
+                Console.Write("\nNuméro de sécurité sociale du manager : ");
+                managerNumeroSS = Console.ReadLine();
+            }
+
+            bool ajoutOk = _salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS);
+            if (ajoutOk)
+            {
+                Console.WriteLine("\nSalarié de test ajouté avec succès !");
+                Console.WriteLine("Détails du salarié créé :");
+                AfficherDetailsSalarie(nouveauSalarie);
+            }
+            else
+            {
+                Console.WriteLine("Erreur lors de l'ajout du salarié de test.");
+            }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+
+        private void AjouterSalarieComplet()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Ajout Complet d'un Salarié");
             
             Console.Write("Numéro de sécurité sociale : ");
             string numeroSS = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(numeroSS))
+            {
+                Console.WriteLine("Le numéro de sécurité sociale ne peut pas être vide.");
+                Console.ReadKey();
+                return;
+            }
+
+            if (_salarieManager.RechercherParId(numeroSS) != null)
+            {
+                Console.WriteLine("Un salarié avec ce numéro existe déjà.");
+                Console.ReadKey();
+                return;
+            }
             
             Console.Write("Nom : ");
             string nom = Console.ReadLine();
             
             Console.Write("Prénom : ");
             string prenom = Console.ReadLine();
-            
+
+            Console.Write("Poste : ");
+            string poste = Console.ReadLine();
+
             Console.Write("Date de naissance (JJ/MM/AAAA) : ");
-            DateTime dateNaissance = DateTime.Parse(Console.ReadLine());
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateNaissance))
+            {
+                Console.WriteLine("Format de date invalide.");
+                Console.ReadKey();
+                return;
+            }
             
-            Console.Write("Date d'embauche (JJ/MM/AAAA) : ");
-            DateTime dateEmbauche = DateTime.Parse(Console.ReadLine());
+            Console.Write("Date d'entrée dans la société (JJ/MM/AAAA) : ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateEntree))
+            {
+                Console.WriteLine("Format de date invalide.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Adresse postale : ");
+            string adressePostale = Console.ReadLine();
+
+            Console.Write("Email : ");
+            string email = Console.ReadLine();
+
+            Console.Write("Téléphone : ");
+            string telephone = Console.ReadLine();
             
             Console.Write("Salaire : ");
-            double salaire = double.Parse(Console.ReadLine());
+            if (!decimal.TryParse(Console.ReadLine(), out decimal salaire))
+            {
+                Console.WriteLine("Format de salaire invalide.");
+                Console.ReadKey();
+                return;
+            }
             
-            Console.Write("Numéro de sécurité sociale du manager : ");
+            Console.Write("Numéro de sécurité sociale du manager (laisser vide si aucun) : ");
             string managerNumeroSS = Console.ReadLine();
 
-            Salarie nouveauSalarie;
-            if (type == "1")
+            var nouveauSalarie = new Salarie
             {
-                nouveauSalarie = new Responsable(numeroSS, nom, prenom, dateNaissance, dateEmbauche) { Salaire = salaire };
-            }
-            else
-            {
-                nouveauSalarie = new Chauffeur(numeroSS, nom, prenom, dateNaissance, dateEmbauche) { Salaire = salaire };
-            }
+                NumeroSecuriteSociale = numeroSS,
+                Nom = nom,
+                Prenom = prenom,
+                Poste = poste,
+                DateNaissance = dateNaissance,
+                DateEntreeSociete = dateEntree,
+                AdressePostale = adressePostale,
+                AdresseMail = email,
+                Telephone = telephone,
+                Salaire = salaire,
+                ManagerNumeroSS = string.IsNullOrWhiteSpace(managerNumeroSS) ? null : managerNumeroSS
+            };
 
             bool ajoutOk = _salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS);
             if (ajoutOk)
@@ -1014,6 +1201,7 @@ namespace Projet.Modules
             {
                 Console.WriteLine("Erreur lors de l'ajout du salarié.");
             }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
 
@@ -1025,6 +1213,25 @@ namespace Projet.Modules
             Console.Write("Numéro de sécurité sociale : ");
             string numeroSS = Console.ReadLine();
 
+            var salarie = _salarieManager.RechercherParId(numeroSS);
+            if (salarie == null)
+            {
+                Console.WriteLine("Salarié non trouvé.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine($"\nVous allez supprimer le salarié suivant :");
+            AfficherDetailsSalarie(salarie);
+            
+            Console.Write("\nÊtes-vous sûr de vouloir supprimer ce salarié ? (O/N) : ");
+            if (Console.ReadLine()?.ToUpper() != "O")
+            {
+                Console.WriteLine("Suppression annulée.");
+                Console.ReadKey();
+                return;
+            }
+
             bool suppOk = _salarieManager.SupprimerSalarie(numeroSS);
             if (suppOk)
             {
@@ -1034,7 +1241,76 @@ namespace Projet.Modules
             {
                 Console.WriteLine("Erreur lors de la suppression du salarié.");
             }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
+        }
+
+        private void AfficherSubordonnes()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Affichage des Subordonnés");
+
+            Console.Write("Numéro de sécurité sociale du salarié : ");
+            string numeroSS = Console.ReadLine();
+
+            var subordonnes = _salarieManager.ObtenirSubordonnesDirects(numeroSS);
+            if (subordonnes.Any())
+            {
+                Console.WriteLine("\nSubordonnés directs :");
+                foreach (var subordonne in subordonnes)
+                {
+                    AfficherDetailsSalarie(subordonne);
+                    Console.WriteLine("-----------------------------------");
+                }
+            }
+            else
+            {
+                Console.WriteLine("\nAucun subordonné trouvé.");
+            }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+
+        private void AfficherCollegues()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Affichage des Collègues");
+
+            Console.Write("Numéro de sécurité sociale du salarié : ");
+            string numeroSS = Console.ReadLine();
+
+            var collegues = _salarieManager.ObtenirCollegues(numeroSS);
+            if (collegues.Any())
+            {
+                Console.WriteLine("\nCollègues :");
+                foreach (var collegue in collegues)
+                {
+                    AfficherDetailsSalarie(collegue);
+                    Console.WriteLine("-----------------------------------");
+                }
+            }
+            else
+            {
+                Console.WriteLine("\nAucun collègue trouvé.");
+            }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+
+        private void AfficherDetailsSalarie(Salarie salarie)
+        {
+            if (salarie == null) return;
+
+            Console.WriteLine($"Nom : {salarie.Nom} {salarie.Prenom}");
+            Console.WriteLine($"Poste : {salarie.Poste}");
+            Console.WriteLine($"N° SS : {salarie.NumeroSecuriteSociale}");
+            Console.WriteLine($"Date de naissance : {salarie.DateNaissance:dd/MM/yyyy}");
+            Console.WriteLine($"Date d'entrée : {salarie.DateEntreeSociete:dd/MM/yyyy}");
+            Console.WriteLine($"Adresse : {salarie.AdressePostale}");
+            Console.WriteLine($"Email : {salarie.AdresseMail ?? "Non renseigné"}");
+            Console.WriteLine($"Téléphone : {salarie.Telephone ?? "Non renseigné"}");
+            Console.WriteLine($"Salaire : {salarie.Salaire:C2}");
+            Console.WriteLine($"Manager : {salarie.ManagerNumeroSS ?? "Aucun"}");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Projet.Modules
     {
         public int Id { get; private set; }
         public Client Client { get; set; }
-        public Chauffeur Chauffeur { get; set; }
+        public Salarie Chauffeur { get; set; }
         public Ville VilleDepart { get; set; }
         public Ville VilleArrivee { get; set; }
         public DateTime DateCommande { get; private set; }
@@ -25,7 +25,7 @@ namespace Projet.Modules
         /// L'ID est initialisé à 0 (sera défini par CommandeManager) et la DateCommande est mise à l'heure actuelle.
         /// </summary>
         /// <param name="client">Le client associé à la commande.</param>
-        /// <param name="chauffeur">Le chauffeur assigné (peut être null initialement si assigné plus tard).</param>
+        /// <param name="chauffeur">Le salarié (chauffeur) assigné (peut être null initialement si assigné plus tard).</param>
         /// <param name="villeDepart">La ville de départ du trajet.</param>
         /// <param name="villeArrivee">La ville d'arrivée du trajet.</param>
         /// <param name="distance">La distance calculée pour ce trajet (ex: via Dijkstra).</param>
@@ -33,7 +33,7 @@ namespace Projet.Modules
         /// <exception cref="ArgumentNullException">Lancée si client, villeDepart ou villeArrivee est null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Lancée si distance ou prix sont négatifs.</exception>
         /// <exception cref="ArgumentException">Lancée si villeDepart et villeArrivee sont identiques.</exception>
-        public Commande(Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, double distance, double prix)
+        public Commande(Client client, Salarie chauffeur, Ville villeDepart, Ville villeArrivee, double distance, double prix)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client), "Le client ne peut pas être null.");
@@ -72,7 +72,7 @@ namespace Projet.Modules
         /// <param name="dateCommande">La date et heure originales de la commande.</param>
         /// <param name="distance">La distance calculée.</param>
         /// <param name="prix">Le prix de la commande.</param>
-        public Commande(int id, Client client, Chauffeur chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
+        public Commande(int id, Client client, Salarie chauffeur, Ville villeDepart, Ville villeArrivee, DateTime dateCommande, double distance, double prix)
             : this(client, chauffeur, villeDepart, villeArrivee, distance, prix) 
         {
             Id = id;

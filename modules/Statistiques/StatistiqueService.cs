@@ -40,11 +40,12 @@ namespace Projet.Modules
         public Salarie ObtenirChauffeurPlusActif()
         {
             var chauffeurs = _salarieManager.GetTousLesSalaries()
-                .Where(s => s is Chauffeur)
-                .Cast<Chauffeur>();
+                .Where(s => s.Poste.ToLower().Contains("chauffeur"))
+                .ToList();
             
-            return chauffeurs
-                .FirstOrDefault();
+            // Pour l'instant, on retourne simplement le premier chauffeur trouvé
+            // TODO: Implémenter la logique pour déterminer le chauffeur le plus actif
+            return chauffeurs.FirstOrDefault();
         }
 
         public List<Commande> ObtenirCommandesEntreDates(DateTime dateDebut, DateTime dateFin)

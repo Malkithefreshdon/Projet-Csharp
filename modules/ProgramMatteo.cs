@@ -103,28 +103,101 @@ class ProgramMatteo
             try
             {
                 // Créer la hiérarchie basée sur le PDF
-                var dg = new Responsable("SS001", "Dupond", "Gérard", new DateTime(1970, 1, 1), new DateTime(2010, 5, 1)) { Salaire = 80000, AdresseMail = "dg@trans.co" };
+                var dg = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS001",
+                    Nom = "Dupond",
+                    Prenom = "Gérard",
+                    DateNaissance = new DateTime(1970, 1, 1),
+                    DateEntreeSociete = new DateTime(2010, 5, 1),
+                    Salaire = 80000,
+                    AdresseMail = "dg@trans.co",
+                    Poste = "Directeur Général"
+                };
                 salarieManager.AjouterSalarie(dg); // La racine est ajoutée en premier
 
-                var drh = new Responsable("SS002", "Loyeuse", "Mme", new DateTime(1975, 3, 10), new DateTime(2012, 1, 15)) { Salaire = 60000 };
+                var drh = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS002",
+                    Nom = "Loyeuse",
+                    Prenom = "Mme",
+                    DateNaissance = new DateTime(1975, 3, 10),
+                    DateEntreeSociete = new DateTime(2012, 1, 15),
+                    Salaire = 60000,
+                    Poste = "Directeur des Ressources Humaines"
+                };
                 salarieManager.AjouterSalarie(drh, dg.NumeroSecuriteSociale);
 
-                var dop = new Responsable("SS003", "Fetard", "Mr", new DateTime(1980, 6, 20), new DateTime(2011, 9, 1)) { Salaire = 65000 };
+                var dop = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS003",
+                    Nom = "Fetard",
+                    Prenom = "Mr",
+                    DateNaissance = new DateTime(1980, 6, 20),
+                    DateEntreeSociete = new DateTime(2011, 9, 1),
+                    Salaire = 65000,
+                    Poste = "Directeur des Opérations"
+                };
                 salarieManager.AjouterSalarie(dop, dg.NumeroSecuriteSociale);
 
-                var chef1 = new Responsable("SS004", "Royal", "Mr", new DateTime(1985, 9, 5), new DateTime(2015, 3, 1)) { Salaire = 45000 };
+                var chef1 = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS004",
+                    Nom = "Royal",
+                    Prenom = "Mr",
+                    DateNaissance = new DateTime(1985, 9, 5),
+                    DateEntreeSociete = new DateTime(2015, 3, 1),
+                    Salaire = 45000,
+                    Poste = "Chef d'Équipe"
+                };
                 salarieManager.AjouterSalarie(chef1, dop.NumeroSecuriteSociale);
 
-                var chef2 = new Responsable("SS005", "Prince", "Mme", new DateTime(1988, 11, 12), new DateTime(2016, 7, 10)) { Salaire = 46000 };
+                var chef2 = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS005",
+                    Nom = "Prince",
+                    Prenom = "Mme",
+                    DateNaissance = new DateTime(1988, 11, 12),
+                    DateEntreeSociete = new DateTime(2016, 7, 10),
+                    Salaire = 46000,
+                    Poste = "Chef d'Équipe"
+                };
                 salarieManager.AjouterSalarie(chef2, dop.NumeroSecuriteSociale);
 
-                var chauf1 = new Chauffeur("SS101", "Romu", "Mr", new DateTime(1990, 2, 15), new DateTime(2018, 1, 20)) { Salaire = 28000 };
+                var chauf1 = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS101",
+                    Nom = "Romu",
+                    Prenom = "Mr",
+                    DateNaissance = new DateTime(1990, 2, 15),
+                    DateEntreeSociete = new DateTime(2018, 1, 20),
+                    Salaire = 28000,
+                    Poste = "Chauffeur"
+                };
                 salarieManager.AjouterSalarie(chauf1, chef1.NumeroSecuriteSociale);
 
-                var chauf2 = new Chauffeur("SS102", "Rome", "Mme", new DateTime(1992, 4, 25), new DateTime(2019, 5, 5)) { Salaire = 27500 };
+                var chauf2 = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS102",
+                    Nom = "Rome",
+                    Prenom = "Mme",
+                    DateNaissance = new DateTime(1992, 4, 25),
+                    DateEntreeSociete = new DateTime(2019, 5, 5),
+                    Salaire = 27500,
+                    Poste = "Chauffeur"
+                };
                 salarieManager.AjouterSalarie(chauf2, chef1.NumeroSecuriteSociale);
 
-                var chauf3 = new Chauffeur("SS103", "Romi", "Mme", new DateTime(1991, 8, 30), new DateTime(2017, 11, 1)) { Salaire = 29000 };
+                var chauf3 = new Salarie
+                {
+                    NumeroSecuriteSociale = "SS103",
+                    Nom = "Romi",
+                    Prenom = "Mme",
+                    DateNaissance = new DateTime(1991, 8, 30),
+                    DateEntreeSociete = new DateTime(2017, 11, 1),
+                    Salaire = 29000,
+                    Poste = "Chauffeur"
+                };
                 salarieManager.AjouterSalarie(chauf3, chef2.NumeroSecuriteSociale);
 
                 // Sauvegarder ces données initiales
@@ -179,7 +252,16 @@ class ProgramMatteo
 
         // 3. Ajouter un nouveau salarié (exemple)
         Console.WriteLine("\nAjout d'un nouveau chauffeur 'Test Driver' sous Chef Equipe 'Prince' (SS005)...");
-        var nouveauChauffeur = new Chauffeur("SS999", "Driver", "Test", new DateTime(1995, 1, 1), DateTime.Now) { Salaire = 25000 };
+        var nouveauChauffeur = new Salarie
+        {
+            NumeroSecuriteSociale = "SS999",
+            Nom = "Driver",
+            Prenom = "Test",
+            DateNaissance = new DateTime(1995, 1, 1),
+            DateEntreeSociete = DateTime.Now,
+            Salaire = 25000,
+            Poste = "Chauffeur"
+        };
         bool ajoutOk = salarieManager.AjouterSalarie(nouveauChauffeur, "SS005");
         if (ajoutOk) salarieManager.AfficherOrganigramme();
 
@@ -302,10 +384,10 @@ class ProgramMatteo
 
         // Prérequis: Avoir des clients, des chauffeurs et des villes
         Client clientTest = clients.FirstOrDefault(); // Prend le premier client de test
-                                                      // Trouver un chauffeur disponible (on prend le premier chauffeur trouvé pour ce test)
-        Chauffeur chauffeurTest = salarieManager.GetTousLesSalaries()
-                                    .OfType<Chauffeur>() // Filtre pour obtenir seulement les chauffeurs
-                                    .FirstOrDefault();
+        // Trouver un chauffeur disponible (on prend le premier chauffeur trouvé pour ce test)
+        Salarie chauffeurTest = salarieManager.GetTousLesSalaries()
+            .Where(s => s.Poste.ToLower().Contains("chauffeur"))
+            .FirstOrDefault();
         // Trouver des villes
         Ville villeDepartCmd = grapheListe.GetToutesLesVilles().FirstOrDefault(v => v.Nom.Equals("Paris", StringComparison.OrdinalIgnoreCase));
         Ville villeArriveeCmd = grapheListe.GetToutesLesVilles().FirstOrDefault(v => v.Nom.Equals("Lyon", StringComparison.OrdinalIgnoreCase));

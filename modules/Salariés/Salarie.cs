@@ -1,26 +1,26 @@
-
 using System;
 using System.Text.Json.Serialization; 
 
 namespace Projet.Modules
 {
-    [JsonDerivedType(typeof(Responsable), typeDiscriminator: "Responsable")]
-    [JsonDerivedType(typeof(Chauffeur), typeDiscriminator: "Chauffeur")]
     public class Salarie : IEquatable<Salarie>
     {
-        public string NumeroSecuriteSociale { get; init; }
-        public DateTime DateNaissance { get; init; }
-        public DateTime DateEntreeSociete { get; init; }
+        public string NumeroSecuriteSociale { get; set; }
         public string Nom { get; set; }
         public string Prenom { get; set; }
+        public string Poste { get; set; }
+        public DateTime DateNaissance { get; set; }
+        public DateTime DateEntreeSociete { get; set; }
         public string AdressePostale { get; set; }
         public string AdresseMail { get; set; }
         public string Telephone { get; set; }
-        public virtual string Poste { get; set; }
-        public double Salaire { get; set; }
+        public decimal Salaire { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
         public string ManagerNumeroSS { get; set; }
+
+        // Constructeur par défaut nécessaire pour la désérialisation JSON
+        public Salarie() { }
 
         public Salarie(string numeroSS, string nom, string prenom, DateTime dateNaissance, DateTime dateEntree)
         {
@@ -42,7 +42,7 @@ namespace Projet.Modules
         }
 
         [JsonConstructor]
-        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, double salaire, string managerNumeroSS)
+        public Salarie(string numeroSecuriteSociale, DateTime dateNaissance, DateTime dateEntreeSociete, string nom, string prenom, string adressePostale, string adresseMail, string telephone, string poste, decimal salaire, string managerNumeroSS)
         {
             NumeroSecuriteSociale = numeroSecuriteSociale;
             DateNaissance = dateNaissance;
@@ -56,7 +56,6 @@ namespace Projet.Modules
             Salaire = salaire;
             ManagerNumeroSS = managerNumeroSS;
         }
-
 
         public override string ToString()
         {

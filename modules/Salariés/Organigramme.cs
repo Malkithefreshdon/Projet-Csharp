@@ -1,72 +1,217 @@
-
 using System;
 using System.Collections.Generic;
-using System.Linq; 
+using System.Text.Json;
 
 namespace Projet.Modules
 {
-    public class Organigramme
+    public class NoeudSalarie
     {
-        public Salarie Salarie { get; private set; }
-        public List<Organigramme> Enfants { get; private set; }
+        private Salarie salarie;
+        private NoeudSalarie pere;
+        private NoeudSalarie frere;
+        private NoeudSalarie successeur;
 
-        // Optionnel: Référence au parent pour faciliter certaines opérations (comme la suppression)
-        // public Organigramme Parent { get; private set; }
-
-        public Organigramme(Salarie salarie)
+        public NoeudSalarie(Salarie salarie)
         {
-            Salarie = salarie ?? throw new ArgumentNullException(nameof(salarie));
-            Enfants = new List<Organigramme>();
+            this.salarie = salarie;
+            this.pere = null;
+            this.frere = null;
+            this.successeur = null;
         }
 
-        /// <summary>
-        /// Ajoute un nœud représentant un subordonné direct à ce nœud.
-        /// </summary>
-        public void AjouterSubordonne(Organigramme enfant)
+        public Salarie Salarie
         {
-            if (enfant == null) throw new ArgumentNullException(nameof(enfant));
-            if (!Enfants.Contains(enfant))
+            get { return this.salarie; }
+            set { this.salarie = value; }
+        }
+
+        public NoeudSalarie Pere
+        {
+            get { return this.pere; }
+            set { this.pere = value; }
+        }
+
+        public NoeudSalarie Frere
+        {
+            get { return this.frere; }
+            set { this.frere = value; }
+        }
+
+        public NoeudSalarie Successeur
+        {
+            get { return this.successeur; }
+            set { this.successeur = value; }
+        }
+
+        public bool EstFeuille()
+        {
+            return this.successeur == null;
+        }
+    }
+
+    public class OrganigrammeNaire
+    {
+        private NoeudSalarie racine;
+
+        public OrganigrammeNaire()
+        {
+            this.racine = null;
+        }
+
+        public OrganigrammeNaire(Salarie salarie)
+        {
+            this.racine = new NoeudSalarie(salarie);
+        }
+
+        public NoeudSalarie Racine
+        {
+            get { return this.racine; }
+            set { this.racine = value; }
+        }
+
+        // Méthode pour insérer un subordonné direct (successeur)
+        public bool InsererSubordonne(NoeudSalarie manager, Salarie subordonne)
+        {
+            if (manager == null) return false;
+
+            if (manager.Successeur == null)
             {
-                Enfants.Add(enfant);
-                // Optionnel: Définir le parent de l'enfant
-                // enfant.Parent = this;
+                NoeudSalarie nouveauSubordonne = new NoeudSalarie(subordonne);
+                nouveauSubordonne.Pere = manager;
+                manager.Successeur = nouveauSubordonne;
+                return true;
+            }
+
+            return InsererFrere(manager.Successeur, subordonne);
+        }
+
+        // Méthode pour insérer un collègue (frère)
+        public bool InsererFrere(NoeudSalarie collegue, Salarie nouveauCollegue)
+        {
+            if (collegue == null) return false;
+
+            NoeudSalarie courant = collegue;
+            while (courant.Frere != null)
+            {
+                courant = courant.Frere;
+            }
+
+            NoeudSalarie nouveauFrere = new NoeudSalarie(nouveauCollegue);
+            nouveauFrere.Pere = collegue.Pere;
+            courant.Frere = nouveauFrere;
+            return true;
+        }
+
+        // Méthode pour construire l'organigramme à partir d'une liste de salariés
+        public static OrganigrammeNaire ConstruireDepuisListe(List<Salarie> salaries)
+        {
+            if (salaries == null || salaries.Count == 0)
+                return new OrganigrammeNaire();
+
+            // Trouver le DG (celui qui n'a pas de manager)
+            var dg = salaries.Find(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
+            if (dg == null)
+                throw new Exception("Aucun directeur général trouvé dans la liste");
+
+            var organigramme = new OrganigrammeNaire(dg);
+            var noeudsParSS = new Dictionary<string, NoeudSalarie>
+            {
+                { dg.NumeroSecuriteSociale, organigramme.Racine }
+            };
+
+            // Créer tous les nœuds et les lier
+            foreach (var salarie in salaries)
+            {
+                if (salarie == dg) continue;
+
+                if (!noeudsParSS.ContainsKey(salarie.ManagerNumeroSS))
+                    throw new Exception($"Manager non trouvé pour {salarie.Nom}");
+
+                var noeudManager = noeudsParSS[salarie.ManagerNumeroSS];
+                organigramme.InsererSubordonne(noeudManager, salarie);
+                
+                // Stocker le nouveau nœud pour les futurs subordonnés
+                var nouveauNoeud = noeudManager.Successeur;
+                while (nouveauNoeud.Frere != null)
+                    nouveauNoeud = nouveauNoeud.Frere;
+                noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
+            }
+
+            return organigramme;
+        }
+
+        // Méthode pour afficher l'organigramme
+        public void AfficherOrganigramme(NoeudSalarie noeud = null, string prefixe = "")
+        {
+            if (noeud == null) noeud = racine;
+            if (noeud == null) return;
+
+            Console.WriteLine($"{prefixe}├── {noeud.Salarie}");
+
+            if (noeud.Successeur != null)
+            {
+                AfficherOrganigramme(noeud.Successeur, prefixe + "│   ");
+            }
+
+            if (noeud.Frere != null)
+            {
+                AfficherOrganigramme(noeud.Frere, prefixe);
             }
         }
 
-        /// <summary>
-        /// Supprime un nœud subordonné direct basé sur l'instance du nœud.
-        /// </summary>
-        /// <returns>True si la suppression a réussi, False sinon.</returns>
-        public bool SupprimerSubordonne(Organigramme enfant)
+        // Méthode pour trouver un salarié par son numéro de sécurité sociale
+        public NoeudSalarie TrouverSalarie(string numeroSS)
         {
-            if (enfant == null) return false;
-            bool removed = Enfants.Remove(enfant);
-            // if (removed) {
-            //    Optionnel: Réinitialiser le parent de l'enfant
-            //    enfant.Parent = null;
-            // }
-            return removed;
+            return TrouverSalarieRecursif(racine, numeroSS);
         }
 
-        /// <summary>
-        /// Supprime un nœud subordonné direct basé sur le Salarie qu'il contient.
-        /// </summary>
-        /// <returns>True si la suppression a réussi, False sinon.</returns>
-        public bool SupprimerSubordonne(Salarie salarieEnfant)
+        private NoeudSalarie TrouverSalarieRecursif(NoeudSalarie noeud, string numeroSS)
         {
-            if (salarieEnfant == null) return false;
-            Organigramme noeudASupprimer = Enfants.FirstOrDefault(n => n.Salarie.Equals(salarieEnfant));
-            if (noeudASupprimer != null)
+            if (noeud == null) return null;
+            if (noeud.Salarie.NumeroSecuriteSociale == numeroSS) return noeud;
+
+            var dansSucesseurs = TrouverSalarieRecursif(noeud.Successeur, numeroSS);
+            if (dansSucesseurs != null) return dansSucesseurs;
+
+            return TrouverSalarieRecursif(noeud.Frere, numeroSS);
+        }
+
+        // Méthode pour obtenir tous les subordonnés directs d'un salarié
+        public List<Salarie> ObtenirSubordonnesDirects(string numeroSS)
+        {
+            var noeud = TrouverSalarie(numeroSS);
+            if (noeud == null) return new List<Salarie>();
+
+            var subordonnes = new List<Salarie>();
+            var successeur = noeud.Successeur;
+            while (successeur != null)
             {
-                return SupprimerSubordonne(noeudASupprimer);
+                subordonnes.Add(successeur.Salarie);
+                successeur = successeur.Frere;
             }
-            return false;
+
+            return subordonnes;
         }
 
-
-        public override string ToString()
+        // Méthode pour obtenir tous les collègues d'un salarié
+        public List<Salarie> ObtenirCollegues(string numeroSS)
         {
-            return Salarie.ToString();
+            var noeud = TrouverSalarie(numeroSS);
+            if (noeud == null || noeud.Pere == null) return new List<Salarie>();
+
+            var collegues = new List<Salarie>();
+            var premierFrere = noeud.Pere.Successeur;
+
+            while (premierFrere != null)
+            {
+                if (premierFrere.Salarie.NumeroSecuriteSociale != numeroSS)
+                {
+                    collegues.Add(premierFrere.Salarie);
+                }
+                premierFrere = premierFrere.Frere;
+            }
+
+            return collegues;
         }
     }
 }
