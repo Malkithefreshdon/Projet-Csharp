@@ -1,0 +1,136 @@
+{
+    "vehicules": [
+        {
+            "type": "Voiture",
+            "immatriculation": "AA-123-BB",
+            "poidsMaximal": 1.8,
+            "marque": "Peugeot",
+            "modele": "508",
+            "nombrePassagers": 5
+        },
+        {
+            "type": "Voiture",
+            "immatriculation": "BC-456-CD",
+            "poidsMaximal": 2.2,
+            "marque": "Renault",
+            "modele": "Trafic",
+            "nombrePassagers": 9
+        },
+        {
+            "type": "Camionnette",
+            "immatriculation": "DE-789-EF",
+            "poidsMaximal": 3.5,
+            "marque": "Mercedes",
+            "modele": "Sprinter",
+            "usage": "Transport de matériaux",
+            "transportVerre": false
+        },
+        {
+            "type": "Camionnette",
+            "immatriculation": "FG-012-GH",
+            "poidsMaximal": 3.5,
+            "marque": "Fiat",
+            "modele": "Ducato",
+            "usage": "Transport de verre",
+            "transportVerre": true
+        },
+        {
+            "type": "CamionCiterne",
+            "immatriculation": "HI-345-IJ",
+            "poidsMaximal": 19.0,
+            "marque": "Volvo",
+            "modele": "FH16",
+            "capaciteCuve": 24000.0,
+            "typeProduit": "Carburant"
+        },
+        {
+            "type": "CamionCiterne",
+            "immatriculation": "JK-678-KL",
+            "poidsMaximal": 26.0,
+            "marque": "Scania",
+            "modele": "R500",
+            "capaciteCuve": 32000.0,
+            "typeProduit": "Lait"
+        },
+        {
+            "type": "CamionBenne",
+            "immatriculation": "LM-901-MN",
+            "poidsMaximal": 32.0,
+            "marque": "MAN",
+            "modele": "TGX",
+            "nombreBennes": 3,
+            "hasGrue": true
+        },
+        {
+            "type": "CamionBenne",
+            "immatriculation": "NO-234-OP",
+            "poidsMaximal": 26.0,
+            "marque": "Renault",
+            "modele": "K520",
+            "nombreBennes": 2,
+            "hasGrue": false
+        },
+        {
+            "type": "CamionFrigorifique",
+            "immatriculation": "PQ-567-QR",
+            "poidsMaximal": 19.0,
+            "marque": "Mercedes",
+            "modele": "Actros",
+            "temperatureMin": -25.0,
+            "hasGroupeElectrogene": true
+        },
+        {
+            "type": "CamionFrigorifique",
+            "immatriculation": "RS-890-ST",
+            "poidsMaximal": 26.0,
+            "marque": "DAF",
+            "modele": "XF",
+            "temperatureMin": -18.0,
+            "hasGroupeElectrogene": true
+        },
+        {
+            "type": "PoidsLourd",
+            "immatriculation": "TU-901-UV",
+            "poidsMaximal": 44.0,
+            "marque": "Volvo",
+            "modele": "FH16 750",
+            "volumeRemorque": 100.0,
+            "typeRemorque": "Semi-remorque Tautliner",
+            "typeMarchandise": "Palettes",
+            "hasHayon": true
+        },
+        {
+            "type": "PoidsLourd",
+            "immatriculation": "VW-234-WX",
+            "poidsMaximal": 44.0,
+            "marque": "Scania",
+            "modele": "S730",
+            "volumeRemorque": 90.0,
+            "typeRemorque": "Semi-remorque Fourgon",
+            "typeMarchandise": "Colis",
+            "hasHayon": true
+        },
+        {
+            "type": "PoidsLourd",
+            "immatriculation": "XY-567-YZ",
+            "poidsMaximal": 40.0,
+            "marque": "MAN",
+            "modele": "TGX 18.640",
+            "volumeRemorque": 85.0,
+            "typeRemorque": "Semi-remorque Plateau",
+            "typeMarchandise": "Matériaux de construction",
+            "hasHayon": false
+        },
+        {
+            "type": "PoidsLourd",
+            "immatriculation": "ZA-890-AB",
+            "poidsMaximal": 44.0,
+            "marque": "Mercedes",
+            "modele": "Actros 2663",
+            "volumeRemorque": 95.0,
+            "typeRemorque": "Semi-remorque Double-plancher",
+            "typeMarchandise": "Meubles",
+            "hasHayon": true
+        }
+    ]
+} 
