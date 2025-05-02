@@ -40,12 +40,41 @@ namespace Projet.Modules
         public Salarie ObtenirChauffeurPlusActif()
         {
             var chauffeurs = _salarieManager.GetTousLesSalaries()
-                .Where(s => s.Poste.ToLower().Contains("chauffeur"))
-                .ToList();
+                .Where(s => s.Poste.ToLower().Contains("chauffeur"));
+
+            return chauffeurs
+                .OrderByDescending(c => _commandeManager.ObtenirToutesLesCommandes()
+                    .Count(cmd => cmd.Chauffeur.NumeroSecuriteSociale == c.NumeroSecuriteSociale))
+                .FirstOrDefault();
+        }
+
+        public Dictionary<string, int> ObtenirLivraisonsParChauffeur()
+        {
+            var chauffeurs = _salarieManager.GetTousLesSalaries()
+                .Where(s => s.Poste.ToLower().Contains("chauffeur"));
             
-            // Pour l'instant, on retourne simplement le premier chauffeur trouvé
-            // TODO: Implémenter la logique pour déterminer le chauffeur le plus actif
-            return chauffeurs.FirstOrDefault();
+            var commandes = _commandeManager.ObtenirToutesLesCommandes();
+            
+            return chauffeurs.ToDictionary(
+                c => $"{c.Nom} {c.Prenom}",
+                c => commandes.Count(cmd => cmd.Chauffeur.NumeroSecuriteSociale == c.NumeroSecuriteSociale)
+            );
+        }
+
+        public double ObtenirMoyenneCompteClients()
+        {
+            var clients = _clientManager.ObtenirTousLesClients();
+            if (!clients.Any()) return 0;
+
+            return clients.Average(c => c.HistoriqueCommandes.Sum(cmd => cmd.Prix));
+        }
+
+        public List<Commande> ObtenirCommandesClient(string idClient)
+        {
+            return _commandeManager.ObtenirToutesLesCommandes()
+                .Where(c => c.Client.NumeroSS == idClient)
+                .OrderByDescending(c => c.DateCommande)
+                .ToList();
         }
 
         public List<Commande> ObtenirCommandesEntreDates(DateTime dateDebut, DateTime dateFin)

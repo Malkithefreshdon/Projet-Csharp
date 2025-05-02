@@ -24,7 +24,10 @@ namespace Projet.Modules.UI
                 Console.WriteLine("2. Moyennes (distance/prix)");
                 Console.WriteLine("3. Chauffeur le plus actif");
                 Console.WriteLine("4. Commandes entre deux dates");
-                Console.WriteLine("5. Retour");
+                Console.WriteLine("5. Livraisons par chauffeur");
+                Console.WriteLine("6. Moyenne des comptes clients");
+                Console.WriteLine("7. Commandes d'un client");
+                Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
                 var choix = Console.ReadLine();
@@ -43,6 +46,15 @@ namespace Projet.Modules.UI
                         AfficherCommandesEntreDates();
                         break;
                     case "5":
+                        AfficherLivraisonsParChauffeur();
+                        break;
+                    case "6":
+                        AfficherMoyenneCompteClients();
+                        break;
+                    case "7":
+                        AfficherCommandesClient();
+                        break;
+                    case "0":
                         continuer = false;
                         break;
                     default:
@@ -85,8 +97,10 @@ namespace Projet.Modules.UI
             var chauffeur = _statistiqueService.ObtenirChauffeurPlusActif();
             if (chauffeur != null)
             {
-                Console.WriteLine($"Nom: {chauffeur.Nom}");
-                Console.WriteLine($"Nombre de livraisons: Non disponible");
+                var livraisonsParChauffeur = _statistiqueService.ObtenirLivraisonsParChauffeur();
+                var nombreLivraisons = livraisonsParChauffeur[$"{chauffeur.Nom} {chauffeur.Prenom}"];
+                Console.WriteLine($"Nom: {chauffeur.Nom} {chauffeur.Prenom}");
+                Console.WriteLine($"Nombre de livraisons: {nombreLivraisons}");
             }
             else
             {
@@ -116,5 +130,49 @@ namespace Projet.Modules.UI
             }
             Console.ReadKey();
         }
+
+        private void AfficherLivraisonsParChauffeur()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Livraisons par chauffeur");
+
+            var stats = _statistiqueService.ObtenirLivraisonsParChauffeur();
+            foreach (var stat in stats.OrderByDescending(x => x.Value))
+            {
+                Console.WriteLine($"{stat.Key}: {stat.Value} livraisons");
+            }
+            Console.ReadKey();
+        }
+
+        private void AfficherMoyenneCompteClients()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Moyenne des comptes clients");
+
+            var moyenne = _statistiqueService.ObtenirMoyenneCompteClients();
+            Console.WriteLine($"Moyenne des dépenses par client: {moyenne:C2}");
+            Console.ReadKey();
+        }
+
+        private void AfficherCommandesClient()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Commandes d'un client");
+
+            Console.Write("Numéro de sécurité sociale du client: ");
+            var idClient = Console.ReadLine();
+
+            var commandes = _statistiqueService.ObtenirCommandesClient(idClient);
+            Console.WriteLine($"\nNombre de commandes trouvées: {commandes.Count}");
+            foreach (var commande in commandes)
+            {
+                Console.WriteLine($"\nDate: {commande.DateCommande:dd/MM/yyyy}");
+                Console.WriteLine($"De: {commande.VilleDepart.Nom} → À: {commande.VilleArrivee.Nom}");
+                Console.WriteLine($"Prix: {commande.Prix:C2}");
+                Console.WriteLine($"Distance: {commande.DistanceCalculee:F2} km");
+                Console.WriteLine("----------------------------------------");
+            }
+            Console.ReadKey();
+        }
     }
-} 
+}

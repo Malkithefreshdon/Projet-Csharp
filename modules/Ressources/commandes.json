@@ -1,3 +1,90 @@
 [
- 
+  {
+    "Id": 1,
+    "Client": {
+      "NumeroSS": "1920875430167 45",
+      "Nom": "Martin",
+      "Prenom": "Thomas",
+      "DateNaissance": "1992-08-22T00:00:00",
+      "Adresse": "8 avenue Victor Hugo, 69002 Lyon",
+      "Email": "thomas.martin@email.fr",
+      "Telephone": "07 23 45 67 89",
+      "HistoriqueCommandes": []
+    },
+    "Chauffeur": {
+      "NumeroSecuriteSociale": "CH005",
+      "Nom": "Rimou",
+      "Prenom": "Mme",
+      "Poste": "Chauffeur",
+      "DateNaissance": "1994-11-25T00:00:00",
+      "DateEntreeSociete": "2019-06-15T00:00:00",
+      "AdressePostale": "82 Rue du Chauffeur, 75013 Paris",
+      "AdresseMail": "rimou.ch@entreprise.fr",
+      "Telephone": "0123456805",
+      "Salaire": 31000,
+      "ManagerNumeroSS": "CE002"
+    },
+    "Vehicule": {
+      "$type": "Voiture",
+      "NombrePassagers": 5,
+      "Immatriculation": "AA-123-BB",
+      "PoidsMaximal": 1.8,
+      "Marque": "Peugeot",
+      "Modele": "508"
+    },
+    "VilleDepart": {
+      "Nom": "Nantes"
+    },
+    "VilleArrivee": {
+      "Nom": "Paris"
+    },
+    "DateCommande": "2025-05-02T16:11:11.8370253+02:00",
+    "DateLivraison": "2025-06-01T00:00:00",
+    "Prix": 11176.56,
+    "DistanceCalculee": 342
+  },
+  {
+    "Id": 2,
+    "Client": {
+      "NumeroSS": "2891256780432 32",
+      "Nom": "Petit",
+      "Prenom": "Sophie",
+      "DateNaissance": "1989-12-03T00:00:00",
+      "Adresse": "15 boulevard de la Mer, 44000 Nantes",
+      "Email": "sophie.petit@email.fr",
+      "Telephone": "06 98 76 54 32",
+      "HistoriqueCommandes": []
+    },
+    "Chauffeur": {
+      "NumeroSecuriteSociale": "CH004",
+      "Nom": "Rome",
+      "Prenom": "Mme",
+      "Poste": "Chauffeur",
+      "DateNaissance": "1993-09-12T00:00:00",
+      "DateEntreeSociete": "2019-03-01T00:00:00",
+      "AdressePostale": "80 Rue de la Route, 75013 Paris",
+      "AdresseMail": "rome.ch@entreprise.fr",
+      "Telephone": "0123456804",
+      "Salaire": 31500,
+      "ManagerNumeroSS": "CE002"
+    },
+    "Vehicule": {
+      "$type": "Voiture",
+      "NombrePassagers": 9,
+      "Immatriculation": "BC-456-CD",
+      "PoidsMaximal": 2.2,
+      "Marque": "Renault",
+      "Modele": "Trafic"
+    },
+    "VilleDepart": {
+      "Nom": "Paris"
+    },
+    "VilleArrivee": {
+      "Nom": "Toulouse"
+    },
+    "DateCommande": "2025-05-02T16:56:02.3491588+02:00",
+    "DateLivraison": "2026-05-04T00:00:00",
+    "Prix": 19533.36,
+    "DistanceCalculee": 588
+  }
 ]

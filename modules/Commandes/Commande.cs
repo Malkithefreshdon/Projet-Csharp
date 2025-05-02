@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Projet.Modules
 {
@@ -10,20 +11,34 @@ namespace Projet.Modules
     /// </summary>
     public class Commande
     {
+        [JsonInclude]
         public int Id { get; private set; }
+        [JsonInclude]
         public Client Client { get; set; }
+        [JsonInclude]
         public Salarie Chauffeur { get; set; }
+        [JsonInclude]
         public Vehicule Vehicule { get; set; }
+        [JsonInclude]
         public Ville VilleDepart { get; set; }
+        [JsonInclude]
         public Ville VilleArrivee { get; set; }
+        [JsonInclude]
         public DateTime DateCommande { get; private set; }
+        [JsonInclude]
         public DateTime DateLivraison { get; set; }
+        [JsonInclude]
         public double Prix { get; private set; }
+        [JsonInclude]
         public double DistanceCalculee { get; private set; }
 
         // Constantes pour le calcul du prix
         private const double TAUX_BASE_KM = 1.5; // Prix de base par kilomètre
         private const double COEFFICIENT_SALAIRE = 0.001; // Coefficient pour le calcul du taux kilométrique basé sur le salaire
+
+        // Constructeur par défaut nécessaire pour la désérialisation JSON
+        [JsonConstructor]
+        public Commande() { }
 
         /// <summary>
         /// Constructeur principal pour créer une nouvelle instance de Commande.

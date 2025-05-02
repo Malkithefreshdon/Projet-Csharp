@@ -1177,8 +1177,10 @@ namespace Projet.Modules
             var chauffeur = _statistiqueService.ObtenirChauffeurPlusActif();
             if (chauffeur != null)
             {
-                Console.WriteLine($"Nom: {chauffeur.Nom}");
-                Console.WriteLine($"Nombre de livraisons: Non disponible");
+                var livraisonsParChauffeur = _statistiqueService.ObtenirLivraisonsParChauffeur();
+                var nombreLivraisons = livraisonsParChauffeur[$"{chauffeur.Nom} {chauffeur.Prenom}"];
+                Console.WriteLine($"Nom: {chauffeur.Nom} {chauffeur.Prenom}");
+                Console.WriteLine($"Nombre de livraisons: {nombreLivraisons}");
             }
             else
             {

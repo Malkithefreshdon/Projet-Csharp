@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json; // Pour la sérialisation/désérialisation JSON
+using System.Text.Json;
+using System.Text.Json.Serialization; // Pour la sérialisation/désérialisation JSON
 
 namespace Projet.Modules
 {
@@ -250,6 +251,11 @@ namespace Projet.Modules
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
+                    PropertyNameCaseInsensitive = true,
+                    Converters = 
+                    {
+                        new JsonStringEnumConverter()
+                    }
                 };
 
                 string jsonString = JsonSerializer.Serialize(_commandes, options);
@@ -275,7 +281,16 @@ namespace Projet.Modules
                 try
                 {
                     string jsonString = File.ReadAllText(fichier);
-                    var commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = 
+                        {
+                            new JsonStringEnumConverter()
+                        }
+                    };
+
+                    var commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString, options);
 
                     if (commandesChargees != null)
                     {
@@ -286,7 +301,7 @@ namespace Projet.Modules
                     else
                     {
                         Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté. Aucune commande chargée.");
-                        _commandes = new List<Commande>(); // Réinitialise à une liste vide
+                        _commandes = new List<Commande>();
                         _prochainId = 1;
                     }
                 }
