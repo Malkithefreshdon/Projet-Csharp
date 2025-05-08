@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Représente un nœud de l'organigramme contenant un salarié et ses liens hiérarchiques.
+    /// </summary>
     public class NoeudSalarie
     {
         private Salarie salarie;
@@ -11,6 +14,10 @@ namespace Projet.Modules
         private NoeudSalarie frere;
         private NoeudSalarie successeur;
 
+        /// <summary>
+        /// Initialise un nouveau nœud avec le salarié donné.
+        /// </summary>
+        /// <param name="salarie">Le salarié associé à ce nœud.</param>
         public NoeudSalarie(Salarie salarie)
         {
             this.salarie = salarie;
@@ -43,21 +50,35 @@ namespace Projet.Modules
             set { this.successeur = value; }
         }
 
+        /// <summary>
+        /// Indique si ce nœud est une feuille (n'a pas de subordonné).
+        /// </summary>
+        /// <returns>True si le nœud est une feuille, sinon False.</returns>
         public bool EstFeuille()
         {
             return this.successeur == null;
         }
     }
 
+    /// <summary>
+    /// Représente un organigramme n-aire de l'entreprise.
+    /// </summary>
     public class OrganigrammeNaire
     {
         private NoeudSalarie racine;
 
+        /// <summary>
+        /// Initialise un organigramme vide.
+        /// </summary>
         public OrganigrammeNaire()
         {
             this.racine = null;
         }
 
+        /// <summary>
+        /// Initialise un organigramme avec un salarié racine.
+        /// </summary>
+        /// <param name="salarie">Le salarié racine.</param>
         public OrganigrammeNaire(Salarie salarie)
         {
             this.racine = new NoeudSalarie(salarie);
@@ -69,7 +90,12 @@ namespace Projet.Modules
             set { this.racine = value; }
         }
 
-        // Méthode pour insérer un subordonné direct (successeur)
+        /// <summary>
+        /// Insère un subordonné direct (successeur) sous un manager donné.
+        /// </summary>
+        /// <param name="manager">Le nœud manager.</param>
+        /// <param name="subordonne">Le salarié subordonné à ajouter.</param>
+        /// <returns>True si l'insertion a réussi, sinon False.</returns>
         public bool InsererSubordonne(NoeudSalarie manager, Salarie subordonne)
         {
             if (manager == null) return false;
@@ -85,7 +111,12 @@ namespace Projet.Modules
             return InsererFrere(manager.Successeur, subordonne);
         }
 
-        // Méthode pour insérer un collègue (frère)
+        /// <summary>
+        /// Insère un collègue (frère) à la suite d'un nœud donné.
+        /// </summary>
+        /// <param name="collegue">Le nœud de départ.</param>
+        /// <param name="nouveauCollegue">Le salarié collègue à ajouter.</param>
+        /// <returns>True si l'insertion a réussi, sinon False.</returns>
         public bool InsererFrere(NoeudSalarie collegue, Salarie nouveauCollegue)
         {
             if (collegue == null) return false;
@@ -102,28 +133,32 @@ namespace Projet.Modules
             return true;
         }
 
-        // Méthode pour construire l'organigramme à partir d'une liste de salariés
+        /// <summary>
+        /// Construit un organigramme à partir d'une liste de salariés.
+        /// </summary>
+        /// <param name="salaries">Liste des salariés.</param>
+        /// <returns>Un organigramme n-aire construit à partir de la liste.</returns>
         public static OrganigrammeNaire ConstruireDepuisListe(List<Salarie> salaries)
         {
             if (salaries == null || salaries.Count == 0)
                 return new OrganigrammeNaire();
 
-            var dg = salaries.Find(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
+            Salarie dg = salaries.Find(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
             if (dg == null)
             {
-                dg = salaries.First();
+                dg = salaries[0];
                 dg.ManagerNumeroSS = null;
                 Console.WriteLine($"Attention: Aucun directeur général trouvé. {dg.Nom} défini comme racine temporaire.");
             }
 
-            var organigramme = new OrganigrammeNaire(dg);
-            var noeudsParSS = new Dictionary<string, NoeudSalarie>
+            OrganigrammeNaire organigramme = new OrganigrammeNaire(dg);
+            Dictionary<string, NoeudSalarie> noeudsParSS = new Dictionary<string, NoeudSalarie>
             {
                 { dg.NumeroSecuriteSociale, organigramme.Racine }
             };
 
             // Créer tous les nœuds et les lier
-            foreach (var salarie in salaries)
+            foreach (Salarie salarie in salaries)
             {
                 if (salarie == dg) continue;
 
@@ -134,17 +169,17 @@ namespace Projet.Modules
                     salarie.ManagerNumeroSS = dg.NumeroSecuriteSociale;
                     organigramme.InsererSubordonne(organigramme.Racine, salarie);
                     
-                    var nouveauNoeud = organigramme.Racine.Successeur;
+                    NoeudSalarie nouveauNoeud = organigramme.Racine.Successeur;
                     while (nouveauNoeud.Frere != null)
                         nouveauNoeud = nouveauNoeud.Frere;
                     noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
                 }
                 else
                 {
-                    var noeudManager = noeudsParSS[salarie.ManagerNumeroSS];
+                    NoeudSalarie noeudManager = noeudsParSS[salarie.ManagerNumeroSS];
                     organigramme.InsererSubordonne(noeudManager, salarie);
                     
-                    var nouveauNoeud = noeudManager.Successeur;
+                    NoeudSalarie nouveauNoeud = noeudManager.Successeur;
                     while (nouveauNoeud.Frere != null)
                         nouveauNoeud = nouveauNoeud.Frere;
                     noeudsParSS[salarie.NumeroSecuriteSociale] = nouveauNoeud;
@@ -154,7 +189,11 @@ namespace Projet.Modules
             return organigramme;
         }
 
-        // Méthode pour afficher l'organigramme
+        /// <summary>
+        /// Affiche l'organigramme à partir d'un nœud donné (ou de la racine si non précisé).
+        /// </summary>
+        /// <param name="noeud">Le nœud de départ.</param>
+        /// <param name="prefixe">Le préfixe d'affichage (indentation).</param>
         public void AfficherOrganigramme(NoeudSalarie noeud = null, string prefixe = "")
         {
             if (noeud == null) noeud = racine;
@@ -173,31 +212,45 @@ namespace Projet.Modules
             }
         }
 
-        // Méthode pour trouver un salarié par son numéro de sécurité sociale
+        /// <summary>
+        /// Trouve un salarié dans l'organigramme à partir de son numéro de sécurité sociale.
+        /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du salarié recherché.</param>
+        /// <returns>Le nœud correspondant au salarié, ou null si non trouvé.</returns>
         public NoeudSalarie TrouverSalarie(string numeroSS)
         {
             return TrouverSalarieRecursif(racine, numeroSS);
         }
 
+        /// <summary>
+        /// Méthode récursive pour trouver un salarié dans l'organigramme.
+        /// </summary>
+        /// <param name="noeud">Nœud courant.</param>
+        /// <param name="numeroSS">Numéro de sécurité sociale recherché.</param>
+        /// <returns>Le nœud correspondant ou null.</returns>
         private NoeudSalarie TrouverSalarieRecursif(NoeudSalarie noeud, string numeroSS)
         {
             if (noeud == null) return null;
             if (noeud.Salarie.NumeroSecuriteSociale == numeroSS) return noeud;
 
-            var dansSucesseurs = TrouverSalarieRecursif(noeud.Successeur, numeroSS);
+            NoeudSalarie dansSucesseurs = TrouverSalarieRecursif(noeud.Successeur, numeroSS);
             if (dansSucesseurs != null) return dansSucesseurs;
 
             return TrouverSalarieRecursif(noeud.Frere, numeroSS);
         }
 
-        // Méthode pour obtenir tous les subordonnés directs d'un salarié
+        /// <summary>
+        /// Retourne la liste des subordonnés directs d'un salarié.
+        /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du manager.</param>
+        /// <returns>Liste des salariés subordonnés directs.</returns>
         public List<Salarie> ObtenirSubordonnesDirects(string numeroSS)
         {
-            var noeud = TrouverSalarie(numeroSS);
+            NoeudSalarie noeud = TrouverSalarie(numeroSS);
             if (noeud == null) return new List<Salarie>();
 
-            var subordonnes = new List<Salarie>();
-            var successeur = noeud.Successeur;
+            List<Salarie> subordonnes = new List<Salarie>();
+            NoeudSalarie successeur = noeud.Successeur;
             while (successeur != null)
             {
                 subordonnes.Add(successeur.Salarie);
@@ -207,14 +260,18 @@ namespace Projet.Modules
             return subordonnes;
         }
 
-        // Méthode pour obtenir tous les collègues d'un salarié
+        /// <summary>
+        /// Retourne la liste des collègues d'un salarié (ayant le même manager).
+        /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du salarié.</param>
+        /// <returns>Liste des collègues.</returns>
         public List<Salarie> ObtenirCollegues(string numeroSS)
         {
-            var noeud = TrouverSalarie(numeroSS);
+            NoeudSalarie noeud = TrouverSalarie(numeroSS);
             if (noeud == null || noeud.Pere == null) return new List<Salarie>();
 
-            var collegues = new List<Salarie>();
-            var premierFrere = noeud.Pere.Successeur;
+            List<Salarie> collegues = new List<Salarie>();
+            NoeudSalarie premierFrere = noeud.Pere.Successeur;
 
             while (premierFrere != null)
             {

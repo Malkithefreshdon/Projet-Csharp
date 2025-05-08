@@ -6,11 +6,11 @@ namespace Projet.Modules.UI
 {
     public class VehiculeManagerUI
     {
-        private readonly VehiculeManager _vehiculeManager;
+        private readonly VehiculeManager vehiculeManager;
 
         public VehiculeManagerUI(VehiculeManager vehiculeManager)
         {
-            _vehiculeManager = vehiculeManager;
+            this.vehiculeManager = vehiculeManager;
         }
 
         public void AfficherMenu()
@@ -29,7 +29,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
@@ -66,14 +66,14 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Liste de tous les véhicules");
 
-            var vehicules = _vehiculeManager.ObtenirTousLesVehicules();
+            List<Vehicule> vehicules = vehiculeManager.ObtenirTousLesVehicules();
             if (!vehicules.Any())
             {
                 Console.WriteLine("Aucun véhicule enregistré.");
             }
             else
             {
-                foreach (var vehicule in vehicules)
+                foreach (Vehicule vehicule in vehicules)
                 {
                     Console.WriteLine(vehicule.GetDescription());
                     Console.WriteLine("-----------------------------------");
@@ -96,17 +96,17 @@ namespace Projet.Modules.UI
             Console.WriteLine("6. Poids Lourds");
             Console.Write("\nChoisissez un type : ");
 
-            var choix = Console.ReadLine();
+            string choix = Console.ReadLine();
             Console.Clear();
 
             List<Vehicule> vehicules = choix switch
             {
-                "1" => _vehiculeManager.ObtenirVehiculesParType<Voiture>().Cast<Vehicule>().ToList(),
-                "2" => _vehiculeManager.ObtenirVehiculesParType<Camionnette>().Cast<Vehicule>().ToList(),
-                "3" => _vehiculeManager.ObtenirVehiculesParType<CamionCiterne>().Cast<Vehicule>().ToList(),
-                "4" => _vehiculeManager.ObtenirVehiculesParType<CamionBenne>().Cast<Vehicule>().ToList(),
-                "5" => _vehiculeManager.ObtenirVehiculesParType<CamionFrigorifique>().Cast<Vehicule>().ToList(),
-                "6" => _vehiculeManager.ObtenirVehiculesParType<PoidsLourd>().Cast<Vehicule>().ToList(),
+                "1" => vehiculeManager.ObtenirVehiculesParType<Voiture>().Cast<Vehicule>().ToList(),
+                "2" => vehiculeManager.ObtenirVehiculesParType<Camionnette>().Cast<Vehicule>().ToList(),
+                "3" => vehiculeManager.ObtenirVehiculesParType<CamionCiterne>().Cast<Vehicule>().ToList(),
+                "4" => vehiculeManager.ObtenirVehiculesParType<CamionBenne>().Cast<Vehicule>().ToList(),
+                "5" => vehiculeManager.ObtenirVehiculesParType<CamionFrigorifique>().Cast<Vehicule>().ToList(),
+                "6" => vehiculeManager.ObtenirVehiculesParType<PoidsLourd>().Cast<Vehicule>().ToList(),
                 _ => new List<Vehicule>()
             };
 
@@ -116,7 +116,7 @@ namespace Projet.Modules.UI
             }
             else
             {
-                foreach (var vehicule in vehicules)
+                foreach (Vehicule vehicule in vehicules)
                 {
                     Console.WriteLine(vehicule.GetDescription());
                     Console.WriteLine("-----------------------------------");
@@ -135,7 +135,7 @@ namespace Projet.Modules.UI
             Console.Write("Entrez l'immatriculation : ");
             string immatriculation = Console.ReadLine();
 
-            var vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
+            Vehicule vehicule = vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
             if (vehicule != null)
             {
                 Console.WriteLine("\nVéhicule trouvé :");
@@ -163,7 +163,7 @@ namespace Projet.Modules.UI
             Console.WriteLine("6. Poids Lourd");
             Console.Write("\nChoisissez un type : ");
 
-            var choix = Console.ReadLine();
+            string choix = Console.ReadLine();
 
             // Informations communes
             Console.Write("\nImmatriculation : ");
@@ -234,7 +234,7 @@ namespace Projet.Modules.UI
 
                 if (nouveauVehicule != null)
                 {
-                    _vehiculeManager.AjouterVehicule(nouveauVehicule);
+                    vehiculeManager.AjouterVehicule(nouveauVehicule);
                     Console.WriteLine("\nVéhicule ajouté avec succès !");
                 }
                 else
@@ -259,7 +259,7 @@ namespace Projet.Modules.UI
             Console.Write("Entrez l'immatriculation du véhicule à supprimer : ");
             string immatriculation = Console.ReadLine();
 
-            var vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
+            Vehicule vehicule = vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
             if (vehicule == null)
             {
                 Console.WriteLine("\nAucun véhicule trouvé avec cette immatriculation.");
@@ -272,7 +272,7 @@ namespace Projet.Modules.UI
 
                 if (Console.ReadLine()?.ToUpper() == "O")
                 {
-                    if (_vehiculeManager.SupprimerVehicule(immatriculation))
+                    if (vehiculeManager.SupprimerVehicule(immatriculation))
                     {
                         Console.WriteLine("\nVéhicule supprimé avec succès !");
                     }
@@ -300,7 +300,7 @@ namespace Projet.Modules.UI
             Console.WriteLine("3. Retour");
             Console.Write("\nVotre choix : ");
 
-            var choix = Console.ReadLine();
+            string choix = Console.ReadLine();
             List<Vehicule> resultats = new List<Vehicule>();
 
             switch (choix)
@@ -308,7 +308,7 @@ namespace Projet.Modules.UI
                 case "1":
                     Console.Write("\nEntrez la marque : ");
                     string marque = Console.ReadLine();
-                    resultats = _vehiculeManager.RechercherVehicules(v =>
+                    resultats = vehiculeManager.RechercherVehicules(v =>
                         v.Marque.Contains(marque, StringComparison.OrdinalIgnoreCase));
                     break;
 
@@ -316,7 +316,7 @@ namespace Projet.Modules.UI
                     Console.Write("\nPoids maximal minimum (tonnes) : ");
                     if (double.TryParse(Console.ReadLine(), out double poidsMin))
                     {
-                        resultats = _vehiculeManager.RechercherVehicules(v => v.PoidsMaximal >= poidsMin);
+                        resultats = vehiculeManager.RechercherVehicules(v => v.PoidsMaximal >= poidsMin);
                     }
                     break;
             }
@@ -324,7 +324,7 @@ namespace Projet.Modules.UI
             if (resultats.Any())
             {
                 Console.WriteLine($"\n{resultats.Count} véhicule(s) trouvé(s) :");
-                foreach (var vehicule in resultats)
+                foreach (Vehicule vehicule in resultats)
                 {
                     Console.WriteLine(vehicule.GetDescription());
                     Console.WriteLine("-----------------------------------");

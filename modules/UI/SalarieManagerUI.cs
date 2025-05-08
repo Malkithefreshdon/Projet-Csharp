@@ -6,11 +6,11 @@ namespace Projet.Modules.UI
 {
     public class SalarieManagerUI
     {
-        private readonly SalarieManager _salarieManager;
+        private readonly SalarieManager salarieManager;
 
         public SalarieManagerUI(SalarieManager salarieManager)
         {
-            _salarieManager = salarieManager;
+            this.salarieManager = salarieManager;
         }
 
         public void AfficherMenu()
@@ -29,7 +29,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("7. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
@@ -65,7 +65,7 @@ namespace Projet.Modules.UI
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Organigramme");
-            _salarieManager.AfficherOrganigramme();
+            salarieManager.AfficherOrganigramme();
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
@@ -78,16 +78,16 @@ namespace Projet.Modules.UI
             Console.WriteLine("2. Par numéro de sécurité sociale");
             Console.Write("\nVotre choix : ");
 
-            var choix = Console.ReadLine();
+            string choix = Console.ReadLine();
             if (choix == "1")
             {
                 Console.Write("\nNom du salarié : ");
                 string nom = Console.ReadLine();
-                var resultats = _salarieManager.RechercherParNom(nom);
+                List<Salarie> resultats = salarieManager.RechercherParNom(nom);
                 if (resultats.Any())
                 {
                     Console.WriteLine("\nSalariés trouvés :");
-                    foreach (var salarie in resultats)
+                    foreach (Salarie salarie in resultats)
                     {
                         AfficherDetailsSalarie(salarie);
                         Console.WriteLine("-----------------------------------");
@@ -102,7 +102,7 @@ namespace Projet.Modules.UI
             {
                 Console.Write("\nNuméro de sécurité sociale : ");
                 string numeroSS = Console.ReadLine();
-                var salarie = _salarieManager.RechercherParId(numeroSS);
+                Salarie salarie = salarieManager.RechercherParId(numeroSS);
                 if (salarie != null)
                 {
                     Console.WriteLine("\nSalarié trouvé :");
@@ -212,7 +212,7 @@ namespace Projet.Modules.UI
             switch (Console.ReadLine()?.Trim())
             {
                 case "1":
-                    var managers = _salarieManager.GetTousLesSalaries()
+                    List<Salarie> managers = salarieManager.GetTousLesSalaries()
                         .Where(s => s.Poste.Contains("Directeur", StringComparison.OrdinalIgnoreCase) ||
                                   s.Poste.Contains("Chef", StringComparison.OrdinalIgnoreCase))
                         .ToList();
@@ -255,7 +255,7 @@ namespace Projet.Modules.UI
 
             string numeroSS = $"TEST{DateTime.Now.ToString("yyMMddHHmmss")}";
 
-            var nouveauSalarie = new Salarie
+            Salarie nouveauSalarie = new Salarie
             {
                 NumeroSecuriteSociale = numeroSS,
                 Nom = nom,
@@ -271,7 +271,7 @@ namespace Projet.Modules.UI
 
             if (isRoot)
             {
-                var racineExistante = _salarieManager.GetTousLesSalaries()
+                Salarie racineExistante = salarieManager.GetTousLesSalaries()
                     .FirstOrDefault(s => string.IsNullOrEmpty(s.ManagerNumeroSS));
 
                 if (racineExistante != null)
@@ -298,7 +298,7 @@ namespace Projet.Modules.UI
                 }
             }
 
-            if (_salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS))
+            if (salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS))
             {
                 Console.WriteLine("\nSalarié de test ajouté avec succès !");
                 Console.WriteLine("\nDétails du salarié créé :");
@@ -328,7 +328,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            if (_salarieManager.RechercherParId(numeroSS) != null)
+            if (salarieManager.RechercherParId(numeroSS) != null)
             {
                 Console.WriteLine("Un salarié avec ce numéro existe déjà.");
                 Console.ReadKey();
@@ -380,7 +380,7 @@ namespace Projet.Modules.UI
             Console.Write("Numéro de sécurité sociale du manager (laisser vide si aucun) : ");
             string managerNumeroSS = Console.ReadLine();
 
-            var nouveauSalarie = new Salarie
+            Salarie nouveauSalarie = new Salarie
             {
                 NumeroSecuriteSociale = numeroSS,
                 Nom = nom,
@@ -395,7 +395,7 @@ namespace Projet.Modules.UI
                 ManagerNumeroSS = string.IsNullOrWhiteSpace(managerNumeroSS) ? null : managerNumeroSS
             };
 
-            bool ajoutOk = _salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS);
+            bool ajoutOk = salarieManager.AjouterSalarie(nouveauSalarie, managerNumeroSS);
             if (ajoutOk)
             {
                 Console.WriteLine("Salarié ajouté avec succès.");
@@ -416,7 +416,7 @@ namespace Projet.Modules.UI
             Console.Write("Numéro de sécurité sociale : ");
             string numeroSS = Console.ReadLine();
 
-            var salarie = _salarieManager.RechercherParId(numeroSS);
+            Salarie salarie = salarieManager.RechercherParId(numeroSS);
             if (salarie == null)
             {
                 Console.WriteLine("Salarié non trouvé.");
@@ -435,7 +435,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            bool suppOk = _salarieManager.SupprimerSalarie(numeroSS);
+            bool suppOk = salarieManager.SupprimerSalarie(numeroSS);
             if (suppOk)
             {
                 Console.WriteLine("Salarié supprimé avec succès.");
@@ -456,11 +456,11 @@ namespace Projet.Modules.UI
             Console.Write("Numéro de sécurité sociale du salarié : ");
             string numeroSS = Console.ReadLine();
 
-            var subordonnes = _salarieManager.ObtenirSubordonnesDirects(numeroSS);
+            List<Salarie> subordonnes = salarieManager.ObtenirSubordonnesDirects(numeroSS);
             if (subordonnes.Any())
             {
                 Console.WriteLine("\nSubordonnés directs :");
-                foreach (var subordonne in subordonnes)
+                foreach (Salarie subordonne in subordonnes)
                 {
                     AfficherDetailsSalarie(subordonne);
                     Console.WriteLine("-----------------------------------");
@@ -482,11 +482,11 @@ namespace Projet.Modules.UI
             Console.Write("Numéro de sécurité sociale du salarié : ");
             string numeroSS = Console.ReadLine();
 
-            var collegues = _salarieManager.ObtenirCollegues(numeroSS);
+            List<Salarie> collegues = salarieManager.ObtenirCollegues(numeroSS);
             if (collegues.Any())
             {
                 Console.WriteLine("\nCollègues :");
-                foreach (var collegue in collegues)
+                foreach (Salarie collegue in collegues)
                 {
                     AfficherDetailsSalarie(collegue);
                     Console.WriteLine("-----------------------------------");

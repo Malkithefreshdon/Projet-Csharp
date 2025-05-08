@@ -7,12 +7,18 @@ using System.Text.Json;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Gère les opérations sur les salariés et l'organigramme de l'entreprise.
+    /// </summary>
     public class SalarieManager
     {
         private readonly Dictionary<string, Salarie> _tousLesSalaries;
         private OrganigrammeNaire _organigramme;
         private readonly string _jsonPath;
 
+        /// <summary>
+        /// Initialise le gestionnaire de salariés et charge les données depuis le fichier JSON.
+        /// </summary>
         public SalarieManager()
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -25,6 +31,8 @@ namespace Projet.Modules
         /// <summary>
         /// Ajoute un nouveau salarié et l'intègre dans l'organigramme si un manager est spécifié.
         /// </summary>
+        /// <param name="nouveauSalarie">Le salarié à ajouter.</param>
+        /// <param name="managerNumeroSS">Numéro de sécurité sociale du manager (optionnel).</param>
         /// <returns>True si l'ajout a réussi, False si le salarié existe déjà.</returns>
         public bool AjouterSalarie(Salarie nouveauSalarie, string managerNumeroSS = null)
         {
@@ -40,7 +48,7 @@ namespace Projet.Modules
             if (!string.IsNullOrWhiteSpace(managerNumeroSS))
             {
                 nouveauSalarie.ManagerNumeroSS = managerNumeroSS;
-                var noeudManager = _organigramme.TrouverSalarie(managerNumeroSS);
+                NoeudSalarie noeudManager = _organigramme.TrouverSalarie(managerNumeroSS);
                 if (noeudManager != null)
                 {
                     _organigramme.InsererSubordonne(noeudManager, nouveauSalarie);
@@ -77,6 +85,7 @@ namespace Projet.Modules
         /// <summary>
         /// Supprime un salarié par son numéro de sécurité sociale.
         /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du salarié à supprimer.</param>
         /// <returns>True si la suppression a réussi, False sinon.</returns>
         public bool SupprimerSalarie(string numeroSS)
         {
@@ -88,8 +97,8 @@ namespace Projet.Modules
 
             // Stocker les informations importantes avant la suppression
             string ancienManagerSS = salarieASupprimer.ManagerNumeroSS;
-            var subordonnes = ObtenirSubordonnesDirects(numeroSS);
-            var manager = string.IsNullOrEmpty(ancienManagerSS) ? null : RechercherParId(ancienManagerSS);
+            List<Salarie> subordonnes = ObtenirSubordonnesDirects(numeroSS);
+            Salarie manager = string.IsNullOrEmpty(ancienManagerSS) ? null : RechercherParId(ancienManagerSS);
             string ancienPoste = salarieASupprimer.Poste;
             decimal ancienSalaire = salarieASupprimer.Salaire;
 
@@ -121,7 +130,7 @@ namespace Projet.Modules
                                 Console.Write("\nChoisissez le numéro du subordonné à promouvoir : ");
                                 if (int.TryParse(Console.ReadLine(), out int choix) && choix >= 1 && choix <= subordonnes.Count)
                                 {
-                                    var promu = subordonnes[choix - 1];
+                                    Salarie promu = subordonnes[choix - 1];
                                     promu.Poste = ancienPoste;
                                     promu.ManagerNumeroSS = ancienManagerSS;
 
@@ -129,7 +138,7 @@ namespace Projet.Modules
                                     GererSubordonnesRecursif(promu);
 
                                     // Réaffecter les autres subordonnés au promu
-                                    foreach (var sub in subordonnes)
+                                    foreach (Salarie sub in subordonnes)
                                     {
                                         if (sub != promu)
                                         {
@@ -178,7 +187,7 @@ namespace Projet.Modules
                             }
 
                             // Créer et ajouter le nouveau salarié
-                            var nouveauSalarie = new Salarie
+                            Salarie nouveauSalarie = new Salarie
                             {
                                 NumeroSecuriteSociale = newNumeroSS,
                                 Nom = newNom,
@@ -196,7 +205,7 @@ namespace Projet.Modules
                             GererSubordonnesRecursif(nouveauSalarie);
 
                             // Réaffecter les subordonnés qui n'ont pas été réaffectés ailleurs
-                            foreach (var sub in subordonnes)
+                            foreach (Salarie sub in subordonnes)
                             {
                                 if (sub.ManagerNumeroSS == numeroSS)
                                 {
@@ -216,7 +225,7 @@ namespace Projet.Modules
 
                     if (reaffecterAuManager && manager != null)
                     {
-                        foreach (var subordonne in subordonnes)
+                        foreach (Salarie subordonne in subordonnes)
                         {
                             subordonne.ManagerNumeroSS = manager.NumeroSecuriteSociale;
                             Console.WriteLine($"- {subordonne.Nom} réaffecté à {manager.Nom}");
@@ -225,7 +234,7 @@ namespace Projet.Modules
                     else
                     {
                         Console.WriteLine("\nLes subordonnés deviendront indépendants.");
-                        foreach (var subordonne in subordonnes)
+                        foreach (Salarie subordonne in subordonnes)
                         {
                             subordonne.ManagerNumeroSS = null;
                             Console.WriteLine($"- {subordonne.Nom} devient indépendant");
@@ -253,9 +262,10 @@ namespace Projet.Modules
         /// <summary>
         /// Gère récursivement les subordonnés d'un salarié.
         /// </summary>
+        /// <param name="salarie">Le salarié dont on gère les subordonnés.</param>
         private void GererSubordonnesRecursif(Salarie salarie)
         {
-            var subordonnes = ObtenirSubordonnesDirects(salarie.NumeroSecuriteSociale);
+            List<Salarie> subordonnes = ObtenirSubordonnesDirects(salarie.NumeroSecuriteSociale);
             if (!subordonnes.Any()) return;
 
             Console.WriteLine($"\nGestion des subordonnés de {salarie.Nom} ({salarie.Poste}) :");
@@ -264,7 +274,7 @@ namespace Projet.Modules
             
             if (Console.ReadLine()?.ToUpper() == "O")
             {
-                foreach (var subordonne in subordonnes)
+                foreach (Salarie subordonne in subordonnes)
                 {
                     Console.WriteLine($"\nGestion de : {subordonne.Nom} ({subordonne.Poste})");
                     Console.WriteLine("1. Promouvoir à un autre poste");
@@ -289,7 +299,7 @@ namespace Projet.Modules
                         case "2":
                             Console.Write("Numéro SS du nouveau manager : ");
                             string nouveauManagerSS = Console.ReadLine();
-                            var nouveauManager = RechercherParId(nouveauManagerSS);
+                            Salarie nouveauManager = RechercherParId(nouveauManagerSS);
                             if (nouveauManager != null)
                             {
                                 subordonne.ManagerNumeroSS = nouveauManagerSS;
@@ -316,6 +326,8 @@ namespace Projet.Modules
         /// <summary>
         /// Recherche un salarié par son numéro de sécurité sociale.
         /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du salarié recherché.</param>
+        /// <returns>Le salarié correspondant ou null.</returns>
         public Salarie RechercherParId(string numeroSS)
         {
             _tousLesSalaries.TryGetValue(numeroSS, out Salarie salarie);
@@ -325,6 +337,8 @@ namespace Projet.Modules
         /// <summary>
         /// Recherche des salariés par leur nom de famille (insensible à la casse).
         /// </summary>
+        /// <param name="nom">Nom de famille à rechercher.</param>
+        /// <returns>Liste des salariés trouvés.</returns>
         public List<Salarie> RechercherParNom(string nom)
         {
             return _tousLesSalaries.Values
@@ -353,12 +367,13 @@ namespace Projet.Modules
         /// <summary>
         /// Sauvegarde la liste de tous les salariés en JSON.
         /// </summary>
+        /// <param name="cheminFichier">Chemin du fichier de sauvegarde (optionnel).</param>
         public void SauvegarderSalariesEtOrganigramme(string cheminFichier = null)
         {
             string fichier = cheminFichier ?? _jsonPath;
             try
             {
-                var options = new JsonSerializerOptions
+                JsonSerializerOptions options = new JsonSerializerOptions
                 {
                     WriteIndented = true
                 };
@@ -375,6 +390,7 @@ namespace Projet.Modules
         /// <summary>
         /// Charge les salariés depuis un fichier JSON et reconstruit l'organigramme.
         /// </summary>
+        /// <param name="cheminFichier">Chemin du fichier à charger (optionnel).</param>
         public void ChargerSalariesEtOrganigramme(string cheminFichier = null)
         {
             string fichier = cheminFichier ?? _jsonPath;
@@ -389,14 +405,14 @@ namespace Projet.Modules
             try
             {
                 string jsonString = File.ReadAllText(fichier);
-                var options = new JsonSerializerOptions();
-                var salariesCharges = JsonSerializer.Deserialize<List<Salarie>>(jsonString, options);
+                JsonSerializerOptions options = new JsonSerializerOptions();
+                List<Salarie> salariesCharges = JsonSerializer.Deserialize<List<Salarie>>(jsonString, options);
 
                 _tousLesSalaries.Clear();
 
                 if (salariesCharges != null)
                 {
-                    foreach (var salarie in salariesCharges)
+                    foreach (Salarie salarie in salariesCharges)
                     {
                         if (!_tousLesSalaries.ContainsKey(salarie.NumeroSecuriteSociale))
                         {
@@ -435,6 +451,7 @@ namespace Projet.Modules
         /// <summary>
         /// Retourne une copie de la liste de tous les salariés.
         /// </summary>
+        /// <returns>Liste de tous les salariés.</returns>
         public List<Salarie> GetTousLesSalaries()
         {
             return _tousLesSalaries.Values.ToList();
@@ -443,6 +460,8 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient les subordonnés directs d'un salarié.
         /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du manager.</param>
+        /// <returns>Liste des subordonnés directs.</returns>
         public List<Salarie> ObtenirSubordonnesDirects(string numeroSS)
         {
             return _organigramme.ObtenirSubordonnesDirects(numeroSS);
@@ -451,6 +470,8 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient les collègues d'un salarié.
         /// </summary>
+        /// <param name="numeroSS">Numéro de sécurité sociale du salarié.</param>
+        /// <returns>Liste des collègues.</returns>
         public List<Salarie> ObtenirCollegues(string numeroSS)
         {
             return _organigramme.ObtenirCollegues(numeroSS);

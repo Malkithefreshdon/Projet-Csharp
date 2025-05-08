@@ -1,16 +1,17 @@
 using System;
 using System.Linq;
 using Projet.Modules;
+using System.Collections.Generic;
 
 namespace Projet.Modules.UI
 {
     public class StatistiqueServiceUI
     {
-        private readonly StatistiqueService _statistiqueService;
+        private readonly StatistiqueService statistiqueService;
 
         public StatistiqueServiceUI(StatistiqueService statistiqueService)
         {
-            _statistiqueService = statistiqueService;
+            this.statistiqueService = statistiqueService;
         }
 
         public void AfficherMenu()
@@ -30,7 +31,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
@@ -70,8 +71,8 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Commandes par ville");
 
-            var stats = _statistiqueService.ObtenirCommandesParVille();
-            foreach (var stat in stats)
+            Dictionary<string, int> stats = statistiqueService.ObtenirCommandesParVille();
+            foreach (KeyValuePair<string, int> stat in stats)
             {
                 Console.WriteLine($"{stat.Key}: {stat.Value} commandes");
             }
@@ -83,7 +84,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Moyennes");
 
-            var (moyenneDistance, moyennePrix) = _statistiqueService.ObtenirMoyennes();
+            (double moyenneDistance, double moyennePrix) = statistiqueService.ObtenirMoyennes();
             Console.WriteLine($"Moyenne des distances: {moyenneDistance:F2} km");
             Console.WriteLine($"Moyenne des prix: {moyennePrix:F2} €");
             Console.ReadKey();
@@ -94,11 +95,11 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Chauffeur le plus actif");
 
-            var chauffeur = _statistiqueService.ObtenirChauffeurPlusActif();
+            Salarie chauffeur = statistiqueService.ObtenirChauffeurPlusActif();
             if (chauffeur != null)
             {
-                var livraisonsParChauffeur = _statistiqueService.ObtenirLivraisonsParChauffeur();
-                var nombreLivraisons = livraisonsParChauffeur[$"{chauffeur.Nom} {chauffeur.Prenom}"];
+                Dictionary<string, int> livraisonsParChauffeur = statistiqueService.ObtenirLivraisonsParChauffeur();
+                int nombreLivraisons = livraisonsParChauffeur[$"{chauffeur.Nom} {chauffeur.Prenom}"];
                 Console.WriteLine($"Nom: {chauffeur.Nom} {chauffeur.Prenom}");
                 Console.WriteLine($"Nombre de livraisons: {nombreLivraisons}");
             }
@@ -120,9 +121,9 @@ namespace Projet.Modules.UI
                 Console.Write("Date de fin (JJ/MM/AAAA) : ");
                 if (DateTime.TryParse(Console.ReadLine(), out DateTime dateFin))
                 {
-                    var commandes = _statistiqueService.ObtenirCommandesEntreDates(dateDebut, dateFin);
+                    List<Commande> commandes = statistiqueService.ObtenirCommandesEntreDates(dateDebut, dateFin);
                     Console.WriteLine($"\nNombre de commandes trouvées: {commandes.Count}");
-                    foreach (var commande in commandes)
+                    foreach (Commande commande in commandes)
                     {
                         Console.WriteLine(commande);
                     }
@@ -136,8 +137,8 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Livraisons par chauffeur");
 
-            var stats = _statistiqueService.ObtenirLivraisonsParChauffeur();
-            foreach (var stat in stats.OrderByDescending(x => x.Value))
+            Dictionary<string, int> stats = statistiqueService.ObtenirLivraisonsParChauffeur();
+            foreach (KeyValuePair<string, int> stat in stats.OrderByDescending(x => x.Value))
             {
                 Console.WriteLine($"{stat.Key}: {stat.Value} livraisons");
             }
@@ -149,7 +150,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Moyenne des comptes clients");
 
-            var moyenne = _statistiqueService.ObtenirMoyenneCompteClients();
+            double moyenne = statistiqueService.ObtenirMoyenneCompteClients();
             Console.WriteLine($"Moyenne des dépenses par client: {moyenne:C2}");
             Console.ReadKey();
         }
@@ -160,11 +161,11 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Commandes d'un client");
 
             Console.Write("Numéro de sécurité sociale du client: ");
-            var idClient = Console.ReadLine();
+            string idClient = Console.ReadLine();
 
-            var commandes = _statistiqueService.ObtenirCommandesClient(idClient);
+            List<Commande> commandes = statistiqueService.ObtenirCommandesClient(idClient);
             Console.WriteLine($"\nNombre de commandes trouvées: {commandes.Count}");
-            foreach (var commande in commandes)
+            foreach (Commande commande in commandes)
             {
                 Console.WriteLine($"\nDate: {commande.DateCommande:dd/MM/yyyy}");
                 Console.WriteLine($"De: {commande.VilleDepart.Nom} → À: {commande.VilleArrivee.Nom}");

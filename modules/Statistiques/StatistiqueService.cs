@@ -5,55 +5,80 @@ using System.Linq;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Service fournissant des statistiques sur les clients, commandes et salariés.
+    /// </summary>
     public class StatistiqueService
     {
-        private readonly ClientManager _clientManager;
-        private readonly CommandeManager _commandeManager;
-        private readonly SalarieManager _salarieManager;
+        private readonly ClientManager ClientManager;
+        private readonly CommandeManager CommandeManager;
+        private readonly SalarieManager SalarieManager;
 
+        /// <summary>
+        /// Initialise le service de statistiques avec les gestionnaires nécessaires.
+        /// </summary>
+        /// <param name="clientManager">Gestionnaire des clients.</param>
+        /// <param name="commandeManager">Gestionnaire des commandes.</param>
+        /// <param name="salarieManager">Gestionnaire des salariés.</param>
         public StatistiqueService(ClientManager clientManager, CommandeManager commandeManager, SalarieManager salarieManager)
         {
-            _clientManager = clientManager;
-            _commandeManager = commandeManager;
-            _salarieManager = salarieManager;
+            ClientManager = clientManager;
+            CommandeManager = commandeManager;
+            SalarieManager = salarieManager;
         }
 
+        /// <summary>
+        /// Retourne le nombre de commandes par ville d'arrivée.
+        /// </summary>
+        /// <returns>Dictionnaire ville => nombre de commandes.</returns>
         public Dictionary<string, int> ObtenirCommandesParVille()
         {
-            var commandes = _commandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
             return commandes
                 .GroupBy(c => c.VilleArrivee.Nom)
                 .ToDictionary(g => g.Key, g => g.Count());
         }
 
+        /// <summary>
+        /// Calcule la moyenne des distances et des prix des commandes.
+        /// </summary>
+        /// <returns>Tuple (moyenneDistance, moyennePrix).</returns>
         public (double moyenneDistance, double moyennePrix) ObtenirMoyennes()
         {
-            var commandes = _commandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
             if (!commandes.Any())
                 return (0, 0);
 
-            var moyenneDistance = commandes.Average(c => c.DistanceCalculee);
-            var moyennePrix = commandes.Average(c => c.Prix);
+            double moyenneDistance = commandes.Average(c => c.DistanceCalculee);
+            double moyennePrix = commandes.Average(c => c.Prix);
             return (moyenneDistance, moyennePrix);
         }
 
+        /// <summary>
+        /// Retourne le chauffeur ayant effectué le plus de livraisons.
+        /// </summary>
+        /// <returns>Le salarié chauffeur le plus actif, ou null si aucun.</returns>
         public Salarie ObtenirChauffeurPlusActif()
         {
-            var chauffeurs = _salarieManager.GetTousLesSalaries()
+            IEnumerable<Salarie> chauffeurs = SalarieManager.GetTousLesSalaries()
                 .Where(s => s.Poste.ToLower().Contains("chauffeur"));
 
             return chauffeurs
-                .OrderByDescending(c => _commandeManager.ObtenirToutesLesCommandes()
+                .OrderByDescending(c => CommandeManager.ObtenirToutesLesCommandes()
                     .Count(cmd => cmd.Chauffeur.NumeroSecuriteSociale == c.NumeroSecuriteSociale))
                 .FirstOrDefault();
         }
 
+        /// <summary>
+        /// Retourne le nombre de livraisons effectuées par chaque chauffeur.
+        /// </summary>
+        /// <returns>Dictionnaire nom complet du chauffeur => nombre de livraisons.</returns>
         public Dictionary<string, int> ObtenirLivraisonsParChauffeur()
         {
-            var chauffeurs = _salarieManager.GetTousLesSalaries()
+            IEnumerable<Salarie> chauffeurs = SalarieManager.GetTousLesSalaries()
                 .Where(s => s.Poste.ToLower().Contains("chauffeur"));
             
-            var commandes = _commandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
             
             return chauffeurs.ToDictionary(
                 c => $"{c.Nom} {c.Prenom}",
@@ -61,25 +86,40 @@ namespace Projet.Modules
             );
         }
 
+        /// <summary>
+        /// Calcule la moyenne du chiffre d'affaires par client.
+        /// </summary>
+        /// <returns>Moyenne du chiffre d'affaires par client.</returns>
         public double ObtenirMoyenneCompteClients()
         {
-            var clients = _clientManager.ObtenirTousLesClients();
+            List<Client> clients = ClientManager.ObtenirTousLesClients();
             if (!clients.Any()) return 0;
 
             return clients.Average(c => c.HistoriqueCommandes.Sum(cmd => cmd.Prix));
         }
 
+        /// <summary>
+        /// Retourne la liste des commandes d'un client donné, triées par date décroissante.
+        /// </summary>
+        /// <param name="idClient">Numéro de sécurité sociale du client.</param>
+        /// <returns>Liste des commandes du client.</returns>
         public List<Commande> ObtenirCommandesClient(string idClient)
         {
-            return _commandeManager.ObtenirToutesLesCommandes()
+            return CommandeManager.ObtenirToutesLesCommandes()
                 .Where(c => c.Client.NumeroSS == idClient)
                 .OrderByDescending(c => c.DateCommande)
                 .ToList();
         }
 
+        /// <summary>
+        /// Retourne la liste des commandes passées entre deux dates.
+        /// </summary>
+        /// <param name="dateDebut">Date de début (incluse).</param>
+        /// <param name="dateFin">Date de fin (incluse).</param>
+        /// <returns>Liste des commandes dans l'intervalle.</returns>
         public List<Commande> ObtenirCommandesEntreDates(DateTime dateDebut, DateTime dateFin)
         {
-            return _commandeManager.ObtenirToutesLesCommandes()
+            return CommandeManager.ObtenirToutesLesCommandes()
                 .Where(c => c.DateCommande >= dateDebut && c.DateCommande <= dateFin)
                 .ToList();
         }
