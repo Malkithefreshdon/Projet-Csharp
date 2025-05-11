@@ -5,15 +5,25 @@ using Projet.Modules;
 
 namespace Projet.Modules.UI
 {
+    /// <summary>
+    /// Interface utilisateur pour la gestion des clients
+    /// </summary>
     public class ClientManagerUI
     {
-        private readonly ClientManager _clientManager;
+        private readonly ClientManager clientManager;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe ClientManagerUI
+        /// </summary>
+        /// <param name="clientManager">Le gestionnaire de clients à utiliser</param>
         public ClientManagerUI(ClientManager clientManager)
         {
-            _clientManager = clientManager;
+            this.clientManager = clientManager;
         }
 
+        /// <summary>
+        /// Affiche le menu principal de gestion des clients
+        /// </summary>
         public void AfficherMenu()
         {
             bool continuer = true;
@@ -35,7 +45,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine() ?? "";
                 switch (choix)
                 {
                     case "1":
@@ -68,7 +78,7 @@ namespace Projet.Modules.UI
                     case "10":
                         try
                         {
-                            _clientManager.SauvegarderClients();
+                            clientManager.SauvegarderClients();
                             Console.WriteLine("Les modifications ont été sauvegardées avec succès.");
                         }
                         catch (Exception ex)
@@ -80,7 +90,7 @@ namespace Projet.Modules.UI
                     case "11":
                         try
                         {
-                            _clientManager.ChargerClients();
+                            clientManager.ChargerClients();
                             Console.WriteLine("Les données ont été rechargées avec succès.");
                         }
                         catch (Exception ex)
@@ -100,13 +110,16 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Ajoute un nouveau client au système
+        /// </summary>
         private void AjouterClient()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Ajout d'un client");
 
             Console.Write("Numéro de sécurité sociale : ");
-            string numeroSS = Console.ReadLine();
+            string numeroSS = Console.ReadLine() ?? "";
 
             if (string.IsNullOrWhiteSpace(numeroSS))
             {
@@ -115,7 +128,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            if (_clientManager.RechercherClient(numeroSS) != null)
+            if (clientManager.RechercherClient(numeroSS) != null)
             {
                 Console.WriteLine("Un client avec ce numéro de sécurité sociale existe déjà.");
                 Console.ReadKey();
@@ -123,7 +136,7 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Nom : ");
-            string nom = Console.ReadLine();
+            string nom = Console.ReadLine() ?? "";
 
             if (string.IsNullOrWhiteSpace(nom))
             {
@@ -133,7 +146,7 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Prénom : ");
-            string prenom = Console.ReadLine();
+            string prenom = Console.ReadLine() ?? "";
 
             if (string.IsNullOrWhiteSpace(prenom))
             {
@@ -151,7 +164,7 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Adresse : ");
-            string adresse = Console.ReadLine();
+            string adresse = Console.ReadLine() ?? "";
 
             if (string.IsNullOrWhiteSpace(adresse))
             {
@@ -162,17 +175,17 @@ namespace Projet.Modules.UI
 
             try
             {
-                _clientManager.AjouterClient(numeroSS, nom, prenom, dateNaissance, adresse);
+                clientManager.AjouterClient(numeroSS, nom, prenom, dateNaissance, adresse);
 
                 Console.Write("Email (optionnel) : ");
-                string email = Console.ReadLine();
+                string email = Console.ReadLine() ?? "";
 
                 Console.Write("Téléphone (optionnel) : ");
-                string telephone = Console.ReadLine();
+                string telephone = Console.ReadLine() ?? "";
 
                 if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrWhiteSpace(telephone))
                 {
-                    _clientManager.MettreAJourClient(numeroSS, nom, adresse, email, telephone);
+                    clientManager.MettreAJourClient(numeroSS, nom, adresse, email, telephone);
                 }
 
                 Console.WriteLine("\nClient ajouté avec succès !");
@@ -185,15 +198,18 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Modifie les informations d'un client existant
+        /// </summary>
         private void ModifierClient()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Modification d'un client");
 
             Console.Write("Numéro de sécurité sociale du client à modifier : ");
-            string numeroSS = Console.ReadLine();
+            string numeroSS = Console.ReadLine() ?? "";
 
-            Client client = _clientManager.RechercherClient(numeroSS);
+            Client? client = clientManager.RechercherClient(numeroSS);
             if (client == null)
             {
                 Console.WriteLine("Client non trouvé.");
@@ -204,28 +220,28 @@ namespace Projet.Modules.UI
             Console.WriteLine($"Modification du client : {client.Nom} {client.Prenom}");
 
             Console.Write($"Nouveau nom [{client.Nom}] (laisser vide pour ne pas modifier) : ");
-            string nouveauNom = Console.ReadLine();
+            string nouveauNom = Console.ReadLine() ?? "";
             if (string.IsNullOrWhiteSpace(nouveauNom))
             {
                 nouveauNom = client.Nom;
             }
 
             Console.Write($"Nouvelle adresse [{client.Adresse}] (laisser vide pour ne pas modifier) : ");
-            string nouvelleAdresse = Console.ReadLine();
+            string nouvelleAdresse = Console.ReadLine() ?? "";
             if (string.IsNullOrWhiteSpace(nouvelleAdresse))
             {
                 nouvelleAdresse = client.Adresse;
             }
 
             Console.Write($"Nouvel email [{client.Email}] (laisser vide pour ne pas modifier) : ");
-            string nouvelEmail = Console.ReadLine();
+            string nouvelEmail = Console.ReadLine() ?? "";
             if (string.IsNullOrWhiteSpace(nouvelEmail))
             {
                 nouvelEmail = client.Email;
             }
 
             Console.Write($"Nouveau téléphone [{client.Telephone}] (laisser vide pour ne pas modifier) : ");
-            string nouveauTelephone = Console.ReadLine();
+            string nouveauTelephone = Console.ReadLine() ?? "";
             if (string.IsNullOrWhiteSpace(nouveauTelephone))
             {
                 nouveauTelephone = client.Telephone;
@@ -233,7 +249,7 @@ namespace Projet.Modules.UI
 
             try
             {
-                _clientManager.MettreAJourClient(numeroSS, nouveauNom, nouvelleAdresse, nouvelEmail, nouveauTelephone);
+                clientManager.MettreAJourClient(numeroSS, nouveauNom, nouvelleAdresse, nouvelEmail, nouveauTelephone);
                 Console.WriteLine("Client modifié avec succès !");
                 Console.ReadKey();
             }
@@ -244,15 +260,18 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Supprime un client du système
+        /// </summary>
         private void SupprimerClient()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Suppression d'un client");
 
             Console.Write("Numéro de sécurité sociale du client à supprimer : ");
-            string numeroSS = Console.ReadLine();
+            string numeroSS = Console.ReadLine() ?? "";
 
-            Client client = _clientManager.RechercherClient(numeroSS);
+            Client? client = clientManager.RechercherClient(numeroSS);
             if (client == null)
             {
                 Console.WriteLine("Client non trouvé.");
@@ -261,11 +280,11 @@ namespace Projet.Modules.UI
             }
 
             Console.WriteLine($"Êtes-vous sûr de vouloir supprimer le client {client.Nom} {client.Prenom} ? (O/N)");
-            string confirmation = Console.ReadLine()?.ToUpper();
+            string confirmation = Console.ReadLine()?.ToUpper() ?? "";
 
             if (confirmation == "O")
             {
-                if (_clientManager.SupprimerClient(numeroSS))
+                if (clientManager.SupprimerClient(numeroSS))
                 {
                     Console.WriteLine("Client supprimé avec succès !");
                 }
@@ -281,6 +300,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche un client dans le système
+        /// </summary>
         private void RechercherClient()
         {
             Console.Clear();
@@ -290,7 +312,7 @@ namespace Projet.Modules.UI
             Console.WriteLine("2. Rechercher par nom");
             Console.Write("\nVotre choix : ");
 
-            string choix = Console.ReadLine();
+            string choix = Console.ReadLine() ?? "";
 
             switch (choix)
             {
@@ -307,12 +329,15 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Recherche un client par son numéro de sécurité sociale
+        /// </summary>
         private void RechercherClientParNumeroSS()
         {
             Console.Write("Numéro de sécurité sociale : ");
-            string numeroSS = Console.ReadLine();
+            string numeroSS = Console.ReadLine() ?? "";
 
-            Client client = _clientManager.RechercherClient(numeroSS);
+            Client? client = clientManager.RechercherClient(numeroSS);
             if (client != null)
             {
                 Console.WriteLine("\nClient trouvé :");
@@ -325,12 +350,15 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche un client par son nom
+        /// </summary>
         private void RechercherClientParNom()
         {
             Console.Write("Nom du client : ");
-            string nom = Console.ReadLine();
+            string nom = Console.ReadLine() ?? "";
 
-            var clients = _clientManager.ObtenirTousLesClients()
+            var clients = clientManager.ObtenirTousLesClients()
                 .Where(c => c.Nom.Equals(nom, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -350,12 +378,15 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Affiche tous les clients enregistrés
+        /// </summary>
         private void AfficherTousLesClients()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Liste de tous les clients");
 
-            var clients = _clientManager.ObtenirTousLesClients();
+            var clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -373,12 +404,15 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Affiche les clients par ordre alphabétique
+        /// </summary>
         private void AfficherClientsParOrdreAlphabetique()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par ordre alphabétique");
 
-            var clients = _clientManager.ObtenirTousLesClients()
+            var clients = clientManager.ObtenirTousLesClients()
                 .OrderBy(c => c.Nom)
                 .ThenBy(c => c.Prenom)
                 .ToList();
@@ -400,12 +434,15 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Affiche les clients regroupés par ville
+        /// </summary>
         private void AfficherClientsParVille()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par ville");
 
-            var clients = _clientManager.ObtenirTousLesClients();
+            var clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -432,12 +469,15 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Affiche les clients triés par montant d'achats cumulés
+        /// </summary>
         private void AfficherClientsParMontantAchats()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par montant d'achats cumulés");
 
-            var clients = _clientManager.ObtenirTousLesClients();
+            var clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -463,13 +503,16 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Importe des clients depuis un fichier CSV
+        /// </summary>
         private void ImporterClientsDepuisCSV()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Importation de clients depuis un fichier CSV");
 
             Console.Write("Chemin du fichier CSV : ");
-            string cheminFichier = Console.ReadLine();
+            string cheminFichier = Console.ReadLine() ?? "";
 
             if (!File.Exists(cheminFichier))
             {
@@ -514,7 +557,7 @@ namespace Projet.Modules.UI
 
                     string adresse = colonnes[4].Trim();
 
-                    if (_clientManager.RechercherClient(numeroSS) != null)
+                    if (clientManager.RechercherClient(numeroSS) != null)
                     {
                         Console.WriteLine($"Ligne {i + 1} : Client avec NumeroSS {numeroSS} existe déjà, ignoré.");
                         continue;
@@ -522,14 +565,14 @@ namespace Projet.Modules.UI
 
                     try
                     {
-                        _clientManager.AjouterClient(numeroSS, nom, prenom, dateNaissance, adresse);
+                        clientManager.AjouterClient(numeroSS, nom, prenom, dateNaissance, adresse);
 
                         if (colonnes.Length > 5)
                         {
                             string email = colonnes[5].Trim();
                             string telephone = colonnes.Length > 6 ? colonnes[6].Trim() : "";
 
-                            _clientManager.MettreAJourClient(numeroSS, nom, adresse, email, telephone);
+                            clientManager.MettreAJourClient(numeroSS, nom, adresse, email, telephone);
                         }
 
                         compteur++;
@@ -550,6 +593,10 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Affiche les détails d'un client
+        /// </summary>
+        /// <param name="client">Le client dont les détails doivent être affichés</param>
         private void AfficherDetailsClient(Client client)
         {
             if (client == null) return;
@@ -566,6 +613,11 @@ namespace Projet.Modules.UI
             Console.WriteLine($"Montant total des achats: {montantTotal:C2}");
         }
 
+        /// <summary>
+        /// Extrait la ville d'une adresse
+        /// </summary>
+        /// <param name="adresse">L'adresse complète</param>
+        /// <returns>La ville extraite</returns>
         private string ExtraireVille(string adresse)
         {
             if (string.IsNullOrWhiteSpace(adresse))
@@ -584,4 +636,4 @@ namespace Projet.Modules.UI
             return parties.Length > 0 ? parties[parties.Length - 1] : "Inconnue";
         }
     }
-} 
+}

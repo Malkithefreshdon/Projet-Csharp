@@ -33,7 +33,7 @@ namespace Projet.Modules
         /// <returns>Dictionnaire ville => nombre de commandes.</returns>
         public Dictionary<string, int> ObtenirCommandesParVille()
         {
-            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.GetToutesLesCommandes();
             return commandes
                 .GroupBy(c => c.VilleArrivee.Nom)
                 .ToDictionary(g => g.Key, g => g.Count());
@@ -45,7 +45,7 @@ namespace Projet.Modules
         /// <returns>Tuple (moyenneDistance, moyennePrix).</returns>
         public (double moyenneDistance, double moyennePrix) ObtenirMoyennes()
         {
-            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.GetToutesLesCommandes();
             if (!commandes.Any())
                 return (0, 0);
 
@@ -64,7 +64,7 @@ namespace Projet.Modules
                 .Where(s => s.Poste.ToLower().Contains("chauffeur"));
 
             return chauffeurs
-                .OrderByDescending(c => CommandeManager.ObtenirToutesLesCommandes()
+                .OrderByDescending(c => CommandeManager.GetToutesLesCommandes()
                     .Count(cmd => cmd.Chauffeur.NumeroSecuriteSociale == c.NumeroSecuriteSociale))
                 .FirstOrDefault();
         }
@@ -78,7 +78,7 @@ namespace Projet.Modules
             IEnumerable<Salarie> chauffeurs = SalarieManager.GetTousLesSalaries()
                 .Where(s => s.Poste.ToLower().Contains("chauffeur"));
             
-            List<Commande> commandes = CommandeManager.ObtenirToutesLesCommandes();
+            List<Commande> commandes = CommandeManager.GetToutesLesCommandes();
             
             return chauffeurs.ToDictionary(
                 c => $"{c.Nom} {c.Prenom}",
@@ -105,7 +105,7 @@ namespace Projet.Modules
         /// <returns>Liste des commandes du client.</returns>
         public List<Commande> ObtenirCommandesClient(string idClient)
         {
-            return CommandeManager.ObtenirToutesLesCommandes()
+            return CommandeManager.GetToutesLesCommandes()
                 .Where(c => c.Client.NumeroSS == idClient)
                 .OrderByDescending(c => c.DateCommande)
                 .ToList();
@@ -119,7 +119,7 @@ namespace Projet.Modules
         /// <returns>Liste des commandes dans l'intervalle.</returns>
         public List<Commande> ObtenirCommandesEntreDates(DateTime dateDebut, DateTime dateFin)
         {
-            return CommandeManager.ObtenirToutesLesCommandes()
+            return CommandeManager.GetToutesLesCommandes()
                 .Where(c => c.DateCommande >= dateDebut && c.DateCommande <= dateFin)
                 .ToList();
         }

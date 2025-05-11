@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Text.Json.Serialization;
 
+#nullable enable
+
 namespace Projet.Modules
 {
     /// <summary>
@@ -11,46 +13,88 @@ namespace Projet.Modules
     /// </summary>
     public class Commande
     {
+        private const double TAUX_BASE_KILOMETRIQUE = 1.5;
+        private const double COEFFICIENT_SALAIRE = 0.001;
+
+        /// <summary>
+        /// Obtient l'identifiant unique de la commande.
+        /// </summary>
         [JsonInclude]
         public int Id { get; private set; }
+
+        /// <summary>
+        /// Obtient ou définit le client associé à la commande.
+        /// </summary>
         [JsonInclude]
         public Client Client { get; set; }
+
+        /// <summary>
+        /// Obtient ou définit le chauffeur assigné à la commande. Peut être null.
+        /// </summary>
         [JsonInclude]
-        public Salarie Chauffeur { get; set; }
+        public Salarie? Chauffeur { get; set; }
+
+        /// <summary>
+        /// Obtient ou définit le véhicule assigné à la commande. Peut être null.
+        /// </summary>
         [JsonInclude]
-        public Vehicule Vehicule { get; set; }
+        public Vehicule? Vehicule { get; set; }
+
+        /// <summary>
+        /// Obtient ou définit la ville de départ.
+        /// </summary>
         [JsonInclude]
         public Ville VilleDepart { get; set; }
+
+        /// <summary>
+        /// Obtient ou définit la ville d'arrivée.
+        /// </summary>
         [JsonInclude]
         public Ville VilleArrivee { get; set; }
+
+        /// <summary>
+        /// Obtient la date de création de la commande.
+        /// </summary>
         [JsonInclude]
         public DateTime DateCommande { get; private set; }
+
+        /// <summary>
+        /// Obtient ou définit la date de livraison prévue.
+        /// </summary>
         [JsonInclude]
         public DateTime DateLivraison { get; set; }
+
+        /// <summary>
+        /// Obtient le prix total de la commande.
+        /// </summary>
         [JsonInclude]
         public double Prix { get; private set; }
+
+        /// <summary>
+        /// Obtient la distance calculée pour le trajet.
+        /// </summary>
         [JsonInclude]
         public double DistanceCalculee { get; private set; }
 
-        // Constantes pour le calcul du prix
-        private const double TAUX_BASE_KM = 1.5; // Prix de base par kilomètre
-        private const double COEFFICIENT_SALAIRE = 0.001; // Coefficient pour le calcul du taux kilométrique basé sur le salaire
-
-        // Constructeur par défaut nécessaire pour la désérialisation JSON
+        /// <summary>
+        /// Constructeur par défaut pour la désérialisation JSON.
+        /// </summary>
         [JsonConstructor]
         public Commande() { }
 
         /// <summary>
-        /// Constructeur principal pour créer une nouvelle instance de Commande.
+        /// Initialise une nouvelle instance de la classe Commande.
         /// </summary>
-        public Commande(Client client, Salarie chauffeur, Vehicule vehicule, Ville villeDepart, Ville villeArrivee, DateTime dateLivraison)
+        /// <param name="client">Le client qui passe la commande.</param>
+        /// <param name="chauffeur">Le chauffeur assigné à la livraison.</param>
+        /// <param name="vehicule">Le véhicule utilisé pour la livraison.</param>
+        /// <param name="villeDepart">La ville de départ.</param>
+        /// <param name="villeArrivee">La ville d'arrivée.</param>
+        /// <param name="dateLivraison">La date de livraison prévue.</param>
+        /// <exception cref="ArgumentNullException">Levée si un paramètre requis est null.</exception>
+        /// <exception cref="ArgumentException">Levée si les villes sont identiques ou si la date est invalide.</exception>
+        public Commande(Client client, Salarie? chauffeur, Vehicule? vehicule, Ville villeDepart, Ville villeArrivee, DateTime dateLivraison)
         {
-            if (client == null)
-                throw new ArgumentNullException(nameof(client), "Le client ne peut pas être null.");
-            if (villeDepart == null)
-                throw new ArgumentNullException(nameof(villeDepart), "La ville de départ ne peut pas être null.");
-            if (villeArrivee == null)
-                throw new ArgumentNullException(nameof(villeArrivee), "La ville d'arrivée ne peut pas être null.");
             if (villeDepart.Equals(villeArrivee))
                 throw new ArgumentException("La ville de départ et la ville d'arrivée ne peuvent pas être identiques.");
             if (dateLivraison < DateTime.Now.Date)
@@ -65,49 +109,15 @@ namespace Projet.Modules
             DateCommande = DateTime.Now;
             DateLivraison = dateLivraison.Date;
 
-            // Calcul de la distance avec BellmanFord
-            var grapheListe = new GrapheListe(true);
-            var grapheService = new GrapheService(grapheListe);
-            
-            try 
-            {
-                Console.WriteLine($"Calcul de la distance entre {villeDepart.Nom} et {villeArrivee.Nom}");
-                grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
-                
-                // Vérification que les villes sont bien dans le graphe
-                var toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
-                if (!toutesLesVilles.Any(v => v.Nom.Equals(villeDepart.Nom)) || 
-                    !toutesLesVilles.Any(v => v.Nom.Equals(villeArrivee.Nom)))
-                {
-                    throw new InvalidOperationException($"Une des villes n'existe pas dans le graphe. Villes disponibles : {string.Join(", ", toutesLesVilles.Select(v => v.Nom))}");
-                }
-
-                var (chemin, distance) = grapheService.BellmanFord(villeDepart, villeArrivee);
-                
-                if (double.IsInfinity(distance) || distance <= 0)
-                {
-                    Console.WriteLine($"Chemin trouvé : {(chemin != null ? string.Join(" -> ", chemin.Select(v => v.Nom)) : "aucun")}");
-                    Console.WriteLine($"Distance calculée : {distance}");
-                    throw new InvalidOperationException($"Impossible de calculer un itinéraire valide entre {villeDepart.Nom} et {villeArrivee.Nom}. Vérifiez que les villes sont bien connectées dans le graphe.");
-                }
-
-                DistanceCalculee = distance;
-                Console.WriteLine($"Distance calculée avec succès : {distance} km");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du calcul de la distance : {ex.Message}");
-                throw;
-            }
-
-            // Calcul du prix
+            // Calcul de la distance avec l'algorithme de Bellman-Ford
+            CalculerDistance();
             CalculerPrix();
         }
 
         /// <summary>
-        /// Constructeur pour la désérialisation JSON
+        /// Initialise une nouvelle instance de la classe Commande pour la désérialisation.
         /// </summary>
-        public Commande(int id, Client client, Salarie chauffeur, Vehicule vehicule, Ville villeDepart, 
+        public Commande(int id, Client client, Salarie? chauffeur, Vehicule? vehicule, Ville villeDepart, 
                        Ville villeArrivee, DateTime dateCommande, DateTime dateLivraison, double distance, double prix)
         {
             Id = id;
@@ -120,6 +130,7 @@ namespace Projet.Modules
             DateLivraison = dateLivraison;
             DistanceCalculee = distance;
             Prix = prix;
+
             try
             {
                 var finance = new FinanceSimple();
@@ -130,33 +141,75 @@ namespace Projet.Modules
                     "Transport"
                 );
             }
-            catch (Exception)
+            catch
             {
-                // Ignorer les erreurs pour ne pas bloquer la création de la commande
+                // Ignorer les erreurs de finance pour ne pas bloquer la création
             }
         }
 
         /// <summary>
-        /// Calcule le prix de la commande en fonction du véhicule et du chauffeur
+        /// Calcule la distance entre la ville de départ et la ville d'arrivée.
+        /// </summary>
+        private void CalculerDistance()
+        {
+            var grapheListe = new GrapheListe(true);
+            var grapheService = new GrapheService(grapheListe);
+            
+            try 
+            {
+                Console.WriteLine($"Calcul de la distance entre {VilleDepart.Nom} et {VilleArrivee.Nom}");
+                grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                
+                var toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
+                if (!toutesLesVilles.Any(v => v.Nom.Equals(VilleDepart.Nom)) || 
+                    !toutesLesVilles.Any(v => v.Nom.Equals(VilleArrivee.Nom)))
+                {
+                    throw new InvalidOperationException(
+                        $"Une des villes n'existe pas dans le graphe. Villes disponibles : {string.Join(", ", toutesLesVilles.Select(v => v.Nom))}");
+                }
+
+                var (chemin, distance) = grapheService.BellmanFord(VilleDepart, VilleArrivee);
+                
+                if (double.IsInfinity(distance) || distance <= 0)
+                {
+                    Console.WriteLine($"Chemin trouvé : {(chemin != null ? string.Join(" -> ", chemin.Select(v => v.Nom)) : "aucun")}");
+                    Console.WriteLine($"Distance calculée : {distance}");
+                    throw new InvalidOperationException(
+                        $"Impossible de calculer un itinéraire valide entre {VilleDepart.Nom} et {VilleArrivee.Nom}. " +
+                        "Vérifiez que les villes sont bien connectées dans le graphe.");
+                }
+
+                DistanceCalculee = distance;
+                Console.WriteLine($"Distance calculée avec succès : {distance} km");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du calcul de la distance : {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Calcule le prix de la commande en fonction du véhicule et du chauffeur.
         /// </summary>
         private void CalculerPrix()
         {
-            double tauxKilometrique = TAUX_BASE_KM;
+            double tauxKilometrique = TAUX_BASE_KILOMETRIQUE;
 
-            // Ajustement en fonction du salaire du chauffeur si présent
-            if (Chauffeur != null)
+            // Ajustement en fonction du salaire du chauffeur
+            if (Chauffeur is Salarie chauffeur)
             {
-                tauxKilometrique += (double)(Chauffeur.Salaire * (decimal)COEFFICIENT_SALAIRE);
+                tauxKilometrique += (double)(chauffeur.Salaire * (decimal)COEFFICIENT_SALAIRE);
             }
 
-            // Ajustement en fonction du type de véhicule si présent
-            if (Vehicule != null)
+            // Ajustement en fonction du véhicule
+            if (Vehicule is Vehicule vehicule)
             {
-                // Majoration en fonction du poids maximal du véhicule
-                tauxKilometrique += Vehicule.PoidsMaximal * 0.1;
+                // Majoration en fonction du poids maximal
+                tauxKilometrique += vehicule.PoidsMaximal * 0.1;
 
-                // Majorations spécifiques selon le type de véhicule
-                switch (Vehicule)
+                // Majorations spécifiques selon le type
+                switch (vehicule)
                 {
                     case CamionFrigorifique _:
                         tauxKilometrique *= 1.3; // +30% pour les camions frigorifiques
@@ -174,11 +227,15 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Vérifie si un chauffeur est disponible pour une date de livraison donnée
+        /// Vérifie si un chauffeur est disponible pour une date de livraison donnée.
         /// </summary>
-        public static bool EstChauffeurDisponible(CommandeManager manager, Salarie chauffeur, DateTime dateLivraison)
+        /// <param name="manager">Le gestionnaire de commandes.</param>
+        /// <param name="chauffeur">Le chauffeur à vérifier.</param>
+        /// <param name="dateLivraison">La date de livraison à vérifier.</param>
+        /// <returns>True si le chauffeur est disponible, False sinon.</returns>
+        public static bool EstChauffeurDisponible(CommandeManager manager, Salarie? chauffeur, DateTime dateLivraison)
         {
-            if (chauffeur == null) return false;
+            if (chauffeur is not Salarie) return false;
 
             var commandes = manager.GetToutesLesCommandes();
             return !commandes.Any(c => 
@@ -187,36 +244,11 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Fournit une représentation textuelle formatée de la commande.
-        /// Utile pour l'affichage dans la console ou les logs.
+        /// Assigne un nouvel ID à la commande.
         /// </summary>
-        /// <returns>Une chaîne de caractères décrivant les détails de la commande.</returns>
-        public override string ToString()
-        {
-            string clientInfo = Client?.ToString() ?? "Client non spécifié";
-            string chauffeurInfo = Chauffeur?.ToString() ?? "Chauffeur non assigné";
-            string vehiculeInfo = Vehicule?.GetDescription() ?? "Véhicule non assigné";
-            string departInfo = VilleDepart?.Nom ?? "Ville départ invalide";
-            string arriveeInfo = VilleArrivee?.Nom ?? "Ville arrivée invalide";
-
-            return $"Commande #{Id}\n" +
-                   $"  Date commande: {DateCommande:dd/MM/yyyy HH:mm}\n" +
-                   $"  Date livraison: {DateLivraison:dd/MM/yyyy}\n" +
-                   $"  Client:    {clientInfo}\n" +
-                   $"  Chauffeur: {chauffeurInfo}\n" +
-                   $"  Véhicule:  {vehiculeInfo}\n" +
-                   $"  Trajet:    {departInfo} -> {arriveeInfo}\n" +
-                   $"  Distance:  {DistanceCalculee:F2} km\n" +
-                   $"  Prix:      {Prix:C2}";
-        }
-
-        /// <summary>
-        /// Méthode interne permettant au CommandeManager d'assigner un ID unique à la commande.
-        /// Ne devrait être appelée qu'une seule fois lorsque la commande est ajoutée au manager
-        /// et que son ID est encore à la valeur par défaut (0).
-        /// </summary>
-        /// <param name="id">L'identifiant unique à assigner.</param>
-        /// <exception cref="InvalidOperationException">Lancée si on tente d'assigner un ID alors qu'un ID > 0 existe déjà.</exception>
+        /// <param name="id">Le nouvel ID à assigner.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Levée si l'ID est négatif ou nul.</exception>
+        /// <exception cref="InvalidOperationException">Levée si la commande a déjà un ID.</exception>
         internal void AssignerId(int id)
         {
             if (id <= 0)
@@ -232,6 +264,29 @@ namespace Projet.Modules
             {
                 throw new InvalidOperationException($"Impossible de changer l'ID de la commande de {Id} à {id}. L'ID est déjà assigné.");
             }
+        }
+
+        /// <summary>
+        /// Retourne une représentation textuelle de la commande.
+        /// </summary>
+        /// <returns>Une chaîne décrivant les détails de la commande.</returns>
+        public override string ToString()
+        {
+            string clientInfo = Client.ToString();
+            string chauffeurInfo = Chauffeur?.ToString() ?? "Chauffeur non assigné";
+            string vehiculeInfo = Vehicule?.GetDescription() ?? "Véhicule non assigné";
+            string departInfo = VilleDepart.Nom;
+            string arriveeInfo = VilleArrivee.Nom;
+
+            return $"Commande #{Id}\n" +
+                   $"  Date commande: {DateCommande:dd/MM/yyyy HH:mm}\n" +
+                   $"  Date livraison: {DateLivraison:dd/MM/yyyy}\n" +
+                   $"  Client:    {clientInfo}\n" +
+                   $"  Chauffeur: {chauffeurInfo}\n" +
+                   $"  Véhicule:  {vehiculeInfo}\n" +
+                   $"  Trajet:    {departInfo} -> {arriveeInfo}\n" +
+                   $"  Distance:  {DistanceCalculee:F2} km\n" +
+                   $"  Prix:      {Prix:C2}";
         }
     }
 }

@@ -6,83 +6,132 @@ using System.Text.Json;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Gère la collection des clients de l'entreprise TransConnect.
+    /// </summary>
     public class ClientManager
     {
-        private List<Client> _clients;
-        private readonly string _jsonPath;
+        private readonly List<Client> clients;
+        private readonly string jsonPath;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe ClientManager.
+        /// </summary>
         public ClientManager()
         {
+            clients = new List<Client>();
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            _jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "ressources", "clients.json");
+            jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "ressources", "clients.json");
             ChargerClients();
         }
 
+        /// <summary>
+        /// Charge les clients depuis le fichier JSON.
+        /// </summary>
         public void ChargerClients()
         {
-            if (File.Exists(_jsonPath))
+            if (File.Exists(jsonPath))
             {
-                var jsonString = File.ReadAllText(_jsonPath);
+                var jsonString = File.ReadAllText(jsonPath);
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
                 var clientsData = JsonSerializer.Deserialize<ClientsData>(jsonString, options);
-                _clients = clientsData.Clients;
+                clients.Clear();
+                if (clientsData?.Clients != null)
+                {
+                    clients.AddRange(clientsData.Clients);
+                }
             }
             else
             {
-                _clients = new List<Client>();
+                clients.Clear();
                 SauvegarderClients();
             }
         }
 
+        /// <summary>
+        /// Sauvegarde les clients dans le fichier JSON.
+        /// </summary>
         public void SauvegarderClients()
         {
-            var clientsData = new ClientsData { Clients = _clients };
+            var clientsData = new ClientsData { Clients = clients };
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true
             };
             var jsonString = JsonSerializer.Serialize(clientsData, options);
-            File.WriteAllText(_jsonPath, jsonString);
+            File.WriteAllText(jsonPath, jsonString);
         }
 
+        /// <summary>
+        /// Ajoute un nouveau client.
+        /// </summary>
+        /// <param name="numeroSS">Le numéro de sécurité sociale du client.</param>
+        /// <param name="nom">Le nom du client.</param>
+        /// <param name="prenom">Le prénom du client.</param>
+        /// <param name="dateNaissance">La date de naissance du client.</param>
+        /// <param name="adresse">L'adresse du client.</param>
+        /// <exception cref="ArgumentException">Levée si les champs obligatoires sont vides ou si le numéro de sécurité sociale existe déjà.</exception>
         public void AjouterClient(string numeroSS, string nom, string prenom, DateTime dateNaissance, string adresse)
         {
             if (string.IsNullOrEmpty(numeroSS) || string.IsNullOrEmpty(nom) || string.IsNullOrEmpty(prenom) || string.IsNullOrEmpty(adresse))
                 throw new ArgumentException("Les champs obligatoires ne peuvent pas être vides");
 
-            if (_clients.Any(c => c.NumeroSS == numeroSS))
+            if (clients.Any(c => c.NumeroSS == numeroSS))
                 throw new ArgumentException("Un client avec ce numéro de sécurité sociale existe déjà");
 
             var client = new Client(numeroSS, nom, prenom, dateNaissance, adresse);
-            _clients.Add(client);
+            clients.Add(client);
             SauvegarderClients();
         }
 
+        /// <summary>
+        /// Supprime un client par son numéro de sécurité sociale.
+        /// </summary>
+        /// <param name="numeroSS">Le numéro de sécurité sociale du client à supprimer.</param>
+        /// <returns>True si le client a été supprimé, False sinon.</returns>
         public bool SupprimerClient(string numeroSS)
         {
-            var client = _clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
+            var client = clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
             if (client != null)
             {
-                _clients.Remove(client);
+                clients.Remove(client);
                 SauvegarderClients();
                 return true;
             }
             return false;
         }
 
-        public Client RechercherClient(string numeroSS)
+        /// <summary>
+        /// Recherche un client par son numéro de sécurité sociale.
+        /// </summary>
+        /// <param name="numeroSS">Le numéro de sécurité sociale à rechercher.</param>
+        /// <returns>Le client trouvé ou null si aucun client ne correspond.</returns>
+        public Client? RechercherClient(string numeroSS)
         {
-            return _clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
+            return clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
         }
 
+        /// <summary>
+        /// Retourne tous les clients enregistrés.
+        /// </summary>
+        /// <returns>Une nouvelle liste contenant tous les clients.</returns>
         public List<Client> ObtenirTousLesClients()
         {
-            return new List<Client>(_clients);
+            return new List<Client>(clients);
         }
 
+        /// <summary>
+        /// Met à jour les informations d'un client.
+        /// </summary>
+        /// <param name="numeroSS">Le numéro de sécurité sociale du client.</param>
+        /// <param name="nom">Le nouveau nom.</param>
+        /// <param name="adresse">La nouvelle adresse.</param>
+        /// <param name="email">Le nouvel email.</param>
+        /// <param name="telephone">Le nouveau numéro de téléphone.</param>
+        /// <exception cref="ArgumentException">Levée si le client n'est pas trouvé.</exception>
         public void MettreAJourClient(string numeroSS, string nom, string adresse, string email, string telephone)
         {
             var client = RechercherClient(numeroSS);
@@ -100,6 +149,12 @@ namespace Projet.Modules
             }
         }
 
+        /// <summary>
+        /// Associe une commande à un client.
+        /// </summary>
+        /// <param name="numeroSS">Le numéro de sécurité sociale du client.</param>
+        /// <param name="commande">La commande à associer.</param>
+        /// <exception cref="ArgumentException">Levée si le client n'est pas trouvé.</exception>
         public void AssocierCommande(string numeroSS, Commande commande)
         {
             var client = RechercherClient(numeroSS);
@@ -115,8 +170,14 @@ namespace Projet.Modules
         }
     }
 
+    /// <summary>
+    /// Structure de données pour la sérialisation JSON des clients.
+    /// </summary>
     public class ClientsData
     {
-        public List<Client> Clients { get; set; }
+        /// <summary>
+        /// Obtient ou définit la liste des clients.
+        /// </summary>
+        public List<Client> Clients { get; set; } = new List<Client>();
     }
 }

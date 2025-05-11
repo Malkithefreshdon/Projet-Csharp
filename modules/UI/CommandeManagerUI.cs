@@ -5,36 +5,45 @@ using Projet.Modules;
 
 namespace Projet.Modules.UI
 {
+    /// <summary>
+    /// Interface utilisateur pour la gestion des commandes
+    /// </summary>
     public class CommandeManagerUI
     {
-        private readonly CommandeManager _commandeManager;
-        private readonly ClientManager _clientManager;
-        private readonly SalarieManager _salarieManager;
-        private readonly VehiculeManager _vehiculeManager;
-        private readonly GrapheListe _grapheListe;
-        private readonly GrapheService _grapheService;
-        private bool _donneesVillesChargees;
+        private readonly CommandeManager commandeManager;
+        private readonly ClientManager clientManager;
+        private readonly SalarieManager salarieManager;
+        private readonly VehiculeManager vehiculeManager;
+        private readonly GrapheListe grapheListe;
+        private readonly GrapheService grapheService;
+        private bool donneesVillesChargees;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de CommandeManagerUI
+        /// </summary>
         public CommandeManagerUI(CommandeManager commandeManager, ClientManager clientManager, 
             SalarieManager salarieManager, VehiculeManager vehiculeManager, GrapheListe grapheListe)
         {
-            _commandeManager = commandeManager;
-            _clientManager = clientManager;
-            _salarieManager = salarieManager;
-            _vehiculeManager = vehiculeManager;
-            _grapheListe = grapheListe;
-            _grapheService = new GrapheService(_grapheListe);
-            _donneesVillesChargees = false;
+            this.commandeManager = commandeManager;
+            this.clientManager = clientManager;
+            this.salarieManager = salarieManager;
+            this.vehiculeManager = vehiculeManager;
+            this.grapheListe = grapheListe;
+            this.grapheService = new GrapheService(grapheListe);
+            this.donneesVillesChargees = false;
         }
 
+        /// <summary>
+        /// Charge les données des villes depuis le fichier Excel si ce n'est pas déjà fait
+        /// </summary>
         private void ChargerDonneesVilles()
         {
-            if (!_donneesVillesChargees)
+            if (!donneesVillesChargees)
             {
                 try
                 {
-                    _grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
-                    _donneesVillesChargees = true;
+                    grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                    donneesVillesChargees = true;
                 }
                 catch (Exception ex)
                 {
@@ -45,6 +54,9 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Affiche le menu principal de gestion des commandes
+        /// </summary>
         public void AfficherMenu()
         {
             bool continuer = true;
@@ -63,7 +75,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine() ?? "";
                 switch (choix)
                 {
                     case "1":
@@ -79,7 +91,7 @@ namespace Projet.Modules.UI
                         RechercherCommande();
                         break;
                     case "5":
-                        _commandeManager.AfficherToutesCommandes();
+                        commandeManager.AfficherToutesCommandes();
                         Console.ReadKey();
                         break;
                     case "6":
@@ -102,6 +114,9 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Crée une nouvelle commande
+        /// </summary>
         private void CreerCommande()
         {
             Console.Clear();
@@ -109,7 +124,7 @@ namespace Projet.Modules.UI
 
             // Chargement des villes
             ChargerDonneesVilles();
-            var villes = _grapheListe.GetToutesLesVilles().OrderBy(v => v.Nom).ToList();
+            List<Ville> villes = grapheListe.GetToutesLesVilles().OrderBy(v => v.Nom).ToList();
             if (!villes.Any())
             {
                 Console.WriteLine("Erreur : Aucune ville n'est disponible dans le système.");
@@ -120,8 +135,8 @@ namespace Projet.Modules.UI
 
             // Sélection du client
             Console.Write("Numéro de sécurité sociale du client : ");
-            string numeroSSClient = Console.ReadLine();
-            var client = _clientManager.RechercherClient(numeroSSClient);
+            string numeroSSClient = Console.ReadLine() ?? "";
+            Client? client = clientManager.RechercherClient(numeroSSClient);
             if (client == null)
             {
                 Console.WriteLine("Client non trouvé.");
@@ -131,8 +146,8 @@ namespace Projet.Modules.UI
 
             // Sélection du chauffeur
             Console.Write("Numéro de sécurité sociale du chauffeur : ");
-            string numeroSSChauffeur = Console.ReadLine();
-            var chauffeur = _salarieManager.RechercherParId(numeroSSChauffeur);
+            string numeroSSChauffeur = Console.ReadLine() ?? "";
+            Salarie? chauffeur = salarieManager.RechercherParId(numeroSSChauffeur);
             if (chauffeur == null)
             {
                 Console.WriteLine("Chauffeur non trouvé.");
@@ -142,8 +157,8 @@ namespace Projet.Modules.UI
 
             // Sélection du véhicule
             Console.Write("Immatriculation du véhicule : ");
-            string immatriculation = Console.ReadLine();
-            var vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
+            string immatriculation = Console.ReadLine() ?? "";
+            Vehicule? vehicule = vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
             if (vehicule == null)
             {
                 Console.WriteLine("Véhicule non trouvé.");
@@ -153,15 +168,15 @@ namespace Projet.Modules.UI
 
             // Affichage de la liste des villes disponibles
             Console.WriteLine("\nVilles disponibles :");
-            foreach (var ville in villes)
+            foreach (Ville ville in villes)
             {
                 Console.WriteLine($"- {ville.Nom}");
             }
 
             // Sélection des villes
             Console.Write("\nVille de départ : ");
-            string villeDepart = Console.ReadLine();
-            var villeDepartObj = villes.FirstOrDefault(v => v.Nom.Equals(villeDepart, StringComparison.OrdinalIgnoreCase));
+            string villeDepartNom = Console.ReadLine() ?? "";
+            Ville? villeDepartObj = villes.FirstOrDefault(v => v.Nom.Equals(villeDepartNom, StringComparison.OrdinalIgnoreCase));
             if (villeDepartObj == null)
             {
                 Console.WriteLine("Ville de départ non trouvée. Vérifiez l'orthographe.");
@@ -170,8 +185,8 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Ville d'arrivée : ");
-            string villeArrivee = Console.ReadLine();
-            var villeArriveeObj = villes.FirstOrDefault(v => v.Nom.Equals(villeArrivee, StringComparison.OrdinalIgnoreCase));
+            string villeArriveeNom = Console.ReadLine() ?? "";
+            Ville? villeArriveeObj = villes.FirstOrDefault(v => v.Nom.Equals(villeArriveeNom, StringComparison.OrdinalIgnoreCase));
             if (villeArriveeObj == null)
             {
                 Console.WriteLine("Ville d'arrivée non trouvée. Vérifiez l'orthographe.");
@@ -190,8 +205,8 @@ namespace Projet.Modules.UI
 
             try
             {
-                var nouvelleCommande = new Commande(client, chauffeur, vehicule, villeDepartObj, villeArriveeObj, dateLivraison);
-                _commandeManager.AjouterCommande(nouvelleCommande);
+                Commande nouvelleCommande = new Commande(client, chauffeur, vehicule, villeDepartObj, villeArriveeObj, dateLivraison);
+                commandeManager.AjouterCommande(nouvelleCommande);
                 Console.WriteLine("\nCommande créée avec succès !");
                 Console.WriteLine("\nDétails de la commande :");
                 Console.WriteLine($"Client : {client.Nom} {client.Prenom}");
@@ -208,6 +223,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Modifie une commande existante
+        /// </summary>
         private void ModifierCommande()
         {
             Console.Clear();
@@ -221,7 +239,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = _commandeManager.TrouverCommandeParId(id);
+            var commande = commandeManager.TrouverCommandeParId(id);
             if (commande == null)
             {
                 Console.WriteLine("Commande non trouvée.");
@@ -237,28 +255,28 @@ namespace Projet.Modules.UI
 
             // Modification du chauffeur
             Console.Write("\nNouveau numéro de sécurité sociale du chauffeur : ");
-            string nouveauChauffeurSS = Console.ReadLine();
-            Salarie nouveauChauffeur = !string.IsNullOrWhiteSpace(nouveauChauffeurSS)
-                ? _salarieManager.RechercherParId(nouveauChauffeurSS)
+            string nouveauChauffeurSS = Console.ReadLine() ?? "";
+            Salarie? nouveauChauffeur = !string.IsNullOrWhiteSpace(nouveauChauffeurSS)
+                ? salarieManager.RechercherParId(nouveauChauffeurSS)
                 : commande.Chauffeur;
 
             // Modification du véhicule
             Console.Write("Nouvelle immatriculation du véhicule : ");
-            string nouvelleImmatriculation = Console.ReadLine();
-            Vehicule nouveauVehicule = !string.IsNullOrWhiteSpace(nouvelleImmatriculation)
-                ? _vehiculeManager.ObtenirVehiculeParImmatriculation(nouvelleImmatriculation)
+            string nouvelleImmatriculation = Console.ReadLine() ?? "";
+            Vehicule? nouveauVehicule = !string.IsNullOrWhiteSpace(nouvelleImmatriculation)
+                ? vehiculeManager.ObtenirVehiculeParImmatriculation(nouvelleImmatriculation)
                 : commande.Vehicule;
 
             // Modification de la date de livraison
             Console.Write("Nouvelle date de livraison (JJ/MM/AAAA) : ");
-            string nouvelleDateStr = Console.ReadLine();
+            string nouvelleDateStr = Console.ReadLine() ?? "";
             DateTime nouvelleDateLivraison = !string.IsNullOrWhiteSpace(nouvelleDateStr) && DateTime.TryParse(nouvelleDateStr, out DateTime date)
                 ? date
                 : commande.DateLivraison;
 
             try
             {
-                var commandeModifiee = new Commande(
+                Commande commandeModifiee = new Commande(
                     commande.Id,
                     commande.Client,
                     nouveauChauffeur,
@@ -271,7 +289,7 @@ namespace Projet.Modules.UI
                     commande.Prix
                 );
 
-                if (_commandeManager.ModifierCommande(id, commandeModifiee))
+                if (commandeManager.ModifierCommande(id, commandeModifiee))
                 {
                     Console.WriteLine("Commande modifiée avec succès !");
                 }
@@ -283,6 +301,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Supprime une commande existante
+        /// </summary>
         private void SupprimerCommande()
         {
             Console.Clear();
@@ -296,7 +317,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = _commandeManager.TrouverCommandeParId(id);
+            var commande = commandeManager.TrouverCommandeParId(id);
             if (commande == null)
             {
                 Console.WriteLine("Commande non trouvée.");
@@ -310,7 +331,7 @@ namespace Projet.Modules.UI
 
             if (Console.ReadLine()?.ToUpper() == "O")
             {
-                if (_commandeManager.SupprimerCommande(id))
+                if (commandeManager.SupprimerCommande(id))
                 {
                     Console.WriteLine("Commande supprimée avec succès !");
                 }
@@ -322,6 +343,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche une commande par son ID
+        /// </summary>
         private void RechercherCommande()
         {
             Console.Clear();
@@ -335,7 +359,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = _commandeManager.TrouverCommandeParId(id);
+            var commande = commandeManager.TrouverCommandeParId(id);
             if (commande != null)
             {
                 Console.WriteLine("\nCommande trouvée :");
@@ -348,15 +372,18 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche les commandes par client
+        /// </summary>
         private void RechercherCommandesParClient()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Recherche des commandes par client");
 
             Console.Write("Nom du client : ");
-            string nomClient = Console.ReadLine();
+            string nomClient = Console.ReadLine() ?? "";
 
-            var commandes = _commandeManager.RechercherCommandesParClient(nomClient);
+            var commandes = commandeManager.RechercherCommandesParClient(nomClient);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
@@ -369,15 +396,18 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche les commandes par véhicule
+        /// </summary>
         private void RechercherCommandesParVehicule()
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre("Recherche des commandes par véhicule");
 
             Console.Write("Immatriculation du véhicule : ");
-            string immatriculation = Console.ReadLine();
+            string immatriculation = Console.ReadLine() ?? "";
 
-            var commandes = _commandeManager.RechercherCommandesParVehicule(immatriculation);
+            var commandes = commandeManager.RechercherCommandesParVehicule(immatriculation);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
@@ -390,6 +420,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Recherche les commandes par date de livraison
+        /// </summary>
         private void RechercherCommandesParDate()
         {
             Console.Clear();
@@ -403,7 +436,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commandes = _commandeManager.RechercherCommandesParDateLivraison(dateLivraison);
+            var commandes = commandeManager.RechercherCommandesParDateLivraison(dateLivraison);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
@@ -416,4 +449,4 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
     }
-} 
+}

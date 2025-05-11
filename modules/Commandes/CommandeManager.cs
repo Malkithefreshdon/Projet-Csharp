@@ -3,32 +3,39 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization; // Pour la sérialisation/désérialisation JSON
+using System.Text.Json.Serialization;
+
+#nullable enable
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Gère la collection des commandes de l'entreprise TransConnect.
+    /// </summary>
     public class CommandeManager
     {
-        private List<Commande> _commandes;
-        private int _prochainId;
-        private readonly string _jsonPath;
+        private readonly List<Commande> commandes;
+        private readonly string jsonPath;
+        private int prochainId;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe CommandeManager.
+        /// </summary>
         public CommandeManager()
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            _jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "commandes.json");
-            _commandes = new List<Commande>();
+            jsonPath = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "commandes.json");
+            commandes = new List<Commande>();
             ChargerCommandes();
-            _prochainId = _commandes.Any() ? _commandes.Max(c => c.Id) + 1 : 1;
+            prochainId = commandes.Any() ? commandes.Max(c => c.Id) + 1 : 1;
         }
 
         /// <summary>
         /// Ajoute une nouvelle commande à la collection après vérification de la disponibilité du chauffeur.
-        /// Un ID unique lui est assigné.
         /// </summary>
         /// <param name="commande">La commande à ajouter.</param>
-        /// <exception cref="ArgumentNullException">Lancée si la commande est null.</exception>
-        /// <exception cref="InvalidOperationException">Lancée si la commande a déjà un ID, si l'ajout échoue ou si le chauffeur n'est pas disponible.</exception>
+        /// <exception cref="ArgumentNullException">Levée si la commande est null.</exception>
+        /// <exception cref="InvalidOperationException">Levée si la commande a déjà un ID ou si le chauffeur n'est pas disponible.</exception>
         public void AjouterCommande(Commande commande)
         {
             if (commande == null)
@@ -37,38 +44,40 @@ namespace Projet.Modules
             // Vérifier la disponibilité du chauffeur
             if (commande.Chauffeur != null && !Commande.EstChauffeurDisponible(this, commande.Chauffeur, commande.DateLivraison))
             {
-                throw new InvalidOperationException($"Le chauffeur {commande.Chauffeur.Nom} n'est pas disponible à la date {commande.DateLivraison:dd/MM/yyyy}.");
+                throw new InvalidOperationException(
+                    $"Le chauffeur {commande.Chauffeur.Nom} n'est pas disponible à la date {commande.DateLivraison:dd/MM/yyyy}.");
             }
 
             if (commande.Id == 0)
             {
-                commande.AssignerId(_prochainId++);
+                commande.AssignerId(prochainId++);
             }
             else
             {
-                if (_commandes.Any(c => c.Id == commande.Id))
+                if (commandes.Any(c => c.Id == commande.Id))
                 {
-                    throw new InvalidOperationException($"Une commande avec l'ID {commande.Id} existe déjà. Impossible d'ajouter.");
+                    throw new InvalidOperationException($"Une commande avec l'ID {commande.Id} existe déjà.");
                 }
-                _prochainId = Math.Max(_prochainId, commande.Id + 1);
+                prochainId = Math.Max(prochainId, commande.Id + 1);
             }
 
-            _commandes.Add(commande);
+            commandes.Add(commande);
+            commande.Client.AjouterCommande(commande); 
             Console.WriteLine($"Commande #{commande.Id} ajoutée avec succès.");
             SauvegarderCommandes();
         }
 
         /// <summary>
-        /// Supprime une commande de la collection en utilisant son ID.
+        /// Supprime une commande par son ID.
         /// </summary>
         /// <param name="id">L'ID de la commande à supprimer.</param>
-        /// <returns>True si la commande a été trouvée et supprimée, False sinon.</returns>
+        /// <returns>True si la commande a été supprimée, False si elle n'a pas été trouvée.</returns>
         public bool SupprimerCommande(int id)
         {
-            Commande commandeASupprimer = TrouverCommandeParId(id);
+            var commandeASupprimer = TrouverCommandeParId(id);
             if (commandeASupprimer != null)
             {
-                _commandes.Remove(commandeASupprimer);
+                commandes.Remove(commandeASupprimer);
                 Console.WriteLine($"Commande #{id} supprimée avec succès.");
                 SauvegarderCommandes();
                 return true;
@@ -82,19 +91,17 @@ namespace Projet.Modules
 
         /// <summary>
         /// Modifie une commande existante après vérification de la disponibilité du chauffeur.
-        /// Les informations sont remplacées par celles de la nouvelle commande fournie,
-        /// à l'exception de l'ID et de la DateCommande initiale.
         /// </summary>
         /// <param name="id">L'ID de la commande à modifier.</param>
         /// <param name="nouvelleCommandeData">Un objet Commande contenant les nouvelles données.</param>
-        /// <returns>True si la commande a été trouvée et modifiée, False sinon.</returns>
-        /// <exception cref="ArgumentNullException">Lancée si nouvelleCommandeData est null.</exception>
+        /// <returns>True si la commande a été modifiée, False si elle n'a pas été trouvée.</returns>
+        /// <exception cref="ArgumentNullException">Levée si nouvelleCommandeData est null.</exception>
         public bool ModifierCommande(int id, Commande nouvelleCommandeData)
         {
             if (nouvelleCommandeData == null)
                 throw new ArgumentNullException(nameof(nouvelleCommandeData), "Les nouvelles données de commande ne peuvent pas être null.");
 
-            Commande commandeAModifier = TrouverCommandeParId(id);
+            var commandeAModifier = TrouverCommandeParId(id);
             if (commandeAModifier != null)
             {
                 // Vérifier la disponibilité du chauffeur si changé
@@ -104,7 +111,8 @@ namespace Projet.Modules
                 {
                     if (!Commande.EstChauffeurDisponible(this, nouvelleCommandeData.Chauffeur, nouvelleCommandeData.DateLivraison))
                     {
-                        throw new InvalidOperationException($"Le chauffeur {nouvelleCommandeData.Chauffeur.Nom} n'est pas disponible à la date {nouvelleCommandeData.DateLivraison:dd/MM/yyyy}.");
+                        throw new InvalidOperationException(
+                            $"Le chauffeur {nouvelleCommandeData.Chauffeur.Nom} n'est pas disponible à la date {nouvelleCommandeData.DateLivraison:dd/MM/yyyy}.");
                     }
                 }
 
@@ -119,40 +127,43 @@ namespace Projet.Modules
                 SauvegarderCommandes();
                 return true;
             }
-            else
-            {
-                Console.WriteLine($"Erreur : Aucune commande trouvée avec l'ID {id} pour modification.");
-                return false;
-            }
+
+            Console.WriteLine($"Erreur : Aucune commande trouvée avec l'ID {id} pour modification.");
+            return false;
         }
 
         /// <summary>
-        /// Recherche et retourne une commande par son ID.
+        /// Recherche une commande par son ID.
         /// </summary>
         /// <param name="id">L'ID de la commande à rechercher.</param>
-        /// <returns>L'objet Commande trouvé, ou null si aucune commande ne correspond.</returns>
-        public Commande TrouverCommandeParId(int id)
+        /// <returns>La commande trouvée ou null si aucune commande ne correspond.</returns>
+        public Commande? TrouverCommandeParId(int id)
         {
-            return _commandes.FirstOrDefault(c => c.Id == id);
+            return commandes.FirstOrDefault(c => c.Id == id);
         }
 
         /// <summary>
-        /// Affiche toutes les commandes actuellement gérées dans la console.
+        /// Obtient toutes les commandes gérées.
         /// </summary>
-        public List<Commande> ObtenirToutesLesCommandes()
+        /// <returns>Une liste de toutes les commandes.</returns>
+        public List<Commande> GetToutesLesCommandes()
         {
-            return _commandes;
+            return commandes;
         }
+
+        /// <summary>
+        /// Affiche toutes les commandes dans la console.
+        /// </summary>
         public void AfficherToutesCommandes()
         {
             Console.WriteLine("\n--- Liste de toutes les commandes ---");
-            if (!_commandes.Any())
+            if (!commandes.Any())
             {
                 Console.WriteLine("Aucune commande enregistrée.");
             }
             else
             {
-                foreach (var commande in _commandes)
+                foreach (var commande in commandes)
                 {
                     Console.WriteLine(commande);
                     Console.WriteLine("-----------------------------------");
@@ -161,11 +172,10 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Recherche et retourne toutes les commandes associées à un client spécifique (par nom).
+        /// Recherche les commandes associées à un client par son nom.
         /// </summary>
         /// <param name="nomClient">Le nom du client à rechercher.</param>
-        /// <returns>Une liste des commandes trouvées pour ce client.</returns>
-        /// <remarks>La comparaison des noms est insensible à la casse.</remarks>
+        /// <returns>Une liste des commandes trouvées.</returns>
         public List<Commande> RechercherCommandesParClient(string nomClient)
         {
             if (string.IsNullOrWhiteSpace(nomClient))
@@ -174,7 +184,7 @@ namespace Projet.Modules
                 return new List<Commande>();
             }
 
-            var commandesClient = _commandes
+            var commandesClient = commandes
                 .Where(c => c.Client != null && c.Client.Nom.Equals(nomClient, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -187,11 +197,10 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Recherche et retourne toutes les commandes associées à un véhicule spécifique (par immatriculation).
+        /// Recherche les commandes associées à un véhicule par son immatriculation.
         /// </summary>
         /// <param name="immatriculation">L'immatriculation du véhicule à rechercher.</param>
-        /// <returns>Une liste des commandes trouvées pour ce véhicule.</returns>
-        /// <remarks>La comparaison des immatriculations est insensible à la casse.</remarks>
+        /// <returns>Une liste des commandes trouvées.</returns>
         public List<Commande> RechercherCommandesParVehicule(string immatriculation)
         {
             if (string.IsNullOrWhiteSpace(immatriculation))
@@ -200,7 +209,7 @@ namespace Projet.Modules
                 return new List<Commande>();
             }
 
-            var commandesVehicule = _commandes
+            var commandesVehicule = commandes
                 .Where(c => c.Vehicule != null && c.Vehicule.Immatriculation.Equals(immatriculation, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -213,11 +222,13 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Recherche les commandes prévues pour une date de livraison donnée.
+        /// Recherche les commandes prévues pour une date de livraison.
         /// </summary>
+        /// <param name="dateLivraison">La date de livraison à rechercher.</param>
+        /// <returns>Une liste des commandes trouvées.</returns>
         public List<Commande> RechercherCommandesParDateLivraison(DateTime dateLivraison)
         {
-            var commandesDate = _commandes
+            var commandesDate = commandes
                 .Where(c => c.DateLivraison.Date == dateLivraison.Date)
                 .ToList();
 
@@ -230,22 +241,12 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Retourne une copie de la liste de toutes les commandes.
-        /// Utile pour des traitements externes sans modifier la liste interne.
+        /// Sauvegarde les commandes dans un fichier JSON.
         /// </summary>
-        /// <returns>Une nouvelle liste contenant toutes les commandes.</returns>
-        public List<Commande> GetToutesLesCommandes()
+        /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise le chemin par défaut.</param>
+        public void SauvegarderCommandes(string? cheminFichier = null)
         {
-            return new List<Commande>(_commandes);
-        }
-
-        /// <summary>
-        /// Sauvegarde la liste actuelle des commandes dans un fichier JSON.
-        /// </summary>
-        /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise FichierSauvegarde.</param>
-        public void SauvegarderCommandes(string cheminFichier = null)
-        {
-            string fichier = cheminFichier ?? _jsonPath;
+            string fichier = cheminFichier ?? jsonPath;
             try
             {
                 var options = new JsonSerializerOptions
@@ -258,7 +259,7 @@ namespace Projet.Modules
                     }
                 };
 
-                string jsonString = JsonSerializer.Serialize(_commandes, options);
+                string jsonString = JsonSerializer.Serialize(commandes, options);
                 File.WriteAllText(fichier, jsonString);
                 Console.WriteLine($"Commandes sauvegardées avec succès dans {fichier}");
             }
@@ -269,13 +270,12 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Charge la liste des commandes depuis un fichier JSON.
-        /// Remplace la liste actuelle en mémoire.
+        /// Charge les commandes depuis un fichier JSON.
         /// </summary>
-        /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise FichierSauvegarde.</param>
-        public void ChargerCommandes(string cheminFichier = null)
+        /// <param name="cheminFichier">Chemin optionnel du fichier. Si null, utilise le chemin par défaut.</param>
+        public void ChargerCommandes(string? cheminFichier = null)
         {
-            string fichier = cheminFichier ?? _jsonPath;
+            string fichier = cheminFichier ?? jsonPath;
             if (File.Exists(fichier))
             {
                 try
@@ -294,15 +294,16 @@ namespace Projet.Modules
 
                     if (commandesChargees != null)
                     {
-                        _commandes = commandesChargees;
-                        _prochainId = _commandes.Any() ? _commandes.Max(c => c.Id) + 1 : 1;
-                        Console.WriteLine($"Commandes chargées avec succès depuis {fichier}. {_commandes.Count} commandes récupérées.");
+                        commandes.Clear();
+                        commandes.AddRange(commandesChargees);
+                        prochainId = commandes.Any() ? commandes.Max(c => c.Id) + 1 : 1;
+                        Console.WriteLine($"Commandes chargées avec succès depuis {fichier}. {commandes.Count} commandes récupérées.");
                     }
                     else
                     {
-                        Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté. Aucune commande chargée.");
-                        _commandes = new List<Commande>();
-                        _prochainId = 1;
+                        Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté.");
+                        commandes.Clear();
+                        prochainId = 1;
                     }
                 }
                 catch (JsonException jsonEx)
@@ -317,8 +318,8 @@ namespace Projet.Modules
             else
             {
                 Console.WriteLine($"Fichier de sauvegarde {fichier} non trouvé. Aucune commande chargée.");
-                _commandes = new List<Commande>();
-                _prochainId = 1;
+                commandes.Clear();
+                prochainId = 1;
             }
         }
     }
