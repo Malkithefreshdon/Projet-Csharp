@@ -1,5 +1,5 @@
 {
-  "Solde": 150000,
+  "Solde": -980000,
   "Transactions": [
     {
       "Date": "2025-04-01T20:32:05.040532+02:00",
@@ -7,6 +7,13 @@
       "Type": "Cr\u00E9dit",
       "Description": "Capital initial",
       "Categorie": "Capital"
+    },
+    {
+      "Date": "2025-05-11T15:55:37.3881944+02:00",
+      "Montant": 1130000,
+      "Type": "D\u00E9bit",
+      "Description": "Paiement des salaires - 05/2025",
+      "Categorie": "Salaires"
     }
   ]
 }

@@ -7,32 +7,43 @@ using System.Diagnostics;
 
 namespace Projet.Modules.UI
 {
+    /// <summary>
+    /// Interface utilisateur pour interagir avec les graphes.
+    /// </summary>
     public class GrapheUI
     {
-        private readonly GrapheListe _grapheListe;
-        private readonly GrapheMatrice _grapheMatrice;
-        private readonly GrapheService _grapheServiceListe;
-        private readonly GrapheService _grapheServiceMatrice;
-        private bool _donneeesChargees;
+        private readonly GrapheListe grapheListe;
+        private readonly GrapheMatrice grapheMatrice;
+        private readonly GrapheService grapheServiceListe;
+        private readonly GrapheService grapheServiceMatrice;
+        private bool donneeesChargees;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe GrapheUI.
+        /// </summary>
+        /// <param name="grapheListe">L'implémentation du graphe avec liste d'adjacence.</param>
+        /// <param name="grapheMatrice">L'implémentation du graphe avec matrice d'adjacence.</param>
         public GrapheUI(GrapheListe grapheListe, GrapheMatrice grapheMatrice)
         {
-            _grapheListe = grapheListe;
-            _grapheMatrice = grapheMatrice;
-            _grapheServiceListe = new GrapheService(_grapheListe);
-            _grapheServiceMatrice = new GrapheService(_grapheMatrice);
-            _donneeesChargees = false;
+            this.grapheListe = grapheListe;
+            this.grapheMatrice = grapheMatrice;
+            this.grapheServiceListe = new GrapheService(this.grapheListe);
+            this.grapheServiceMatrice = new GrapheService(this.grapheMatrice);
+            this.donneeesChargees = false;
         }
 
+        /// <summary>
+        /// Charge les données du graphe depuis un fichier Excel.
+        /// </summary>
         private void ChargerDonneesGraphe()
         {
-            if (!_donneeesChargees)
+            if (!this.donneeesChargees)
             {
                 try
                 {
-                    _grapheServiceListe.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
-                    _grapheServiceMatrice.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
-                    _donneeesChargees = true;
+                    this.grapheServiceListe.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                    this.grapheServiceMatrice.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                    this.donneeesChargees = true;
                 }
                 catch (Exception ex)
                 {
@@ -43,6 +54,9 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Affiche le menu principal et gère les interactions utilisateur.
+        /// </summary>
         public void AfficherMenu()
         {
             bool continuer = true;
@@ -58,7 +72,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
@@ -74,7 +88,7 @@ namespace Projet.Modules.UI
                         VerifierCycles();
                         break;
                     case "5":
-                        _donneeesChargees = false;
+                        this.donneeesChargees = false;
                         ChargerDonneesGraphe();
                         Console.WriteLine("Données rechargées.");
                         Console.WriteLine("Appuyez sur une touche pour continuer...");
@@ -91,6 +105,9 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Affiche la liste de toutes les villes du graphe.
+        /// </summary>
         private void AfficherVilles()
         {
             Console.Clear();
@@ -98,7 +115,7 @@ namespace Projet.Modules.UI
 
             ChargerDonneesGraphe();
 
-            var villes = _grapheListe.GetToutesLesVilles().ToList();
+            List<Ville> villes = this.grapheListe.GetToutesLesVilles().ToList();
             if (!villes.Any())
             {
                 Console.WriteLine("Aucune ville n'a été trouvée dans le graphe.");
@@ -108,7 +125,7 @@ namespace Projet.Modules.UI
             {
                 Console.WriteLine($"Nombre total de villes : {villes.Count}");
                 Console.WriteLine("\nListe des villes :");
-                foreach (var ville in villes.OrderBy(v => v.Nom))
+                foreach (Ville ville in villes.OrderBy(v => v.Nom))
                 {
                     Console.WriteLine($"- {ville.Nom}");
                 }
@@ -117,6 +134,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Permet de rechercher et visualiser le plus court chemin entre deux villes.
+        /// </summary>
         private void RechercherPlusCourtChemin()
         {
             Console.Clear();
@@ -124,7 +144,7 @@ namespace Projet.Modules.UI
 
             ChargerDonneesGraphe();
 
-            var villes = _grapheListe.GetToutesLesVilles().ToList();
+            List<Ville> villes = this.grapheListe.GetToutesLesVilles().ToList();
             if (!villes.Any())
             {
                 Console.WriteLine("Aucune ville n'est disponible dans le graphe.");
@@ -133,7 +153,7 @@ namespace Projet.Modules.UI
             }
 
             Console.WriteLine("Villes disponibles :");
-            foreach (var ville in villes.OrderBy(v => v.Nom))
+            foreach (Ville ville in villes.OrderBy(v => v.Nom))
             {
                 Console.WriteLine($"- {ville.Nom}");
             }
@@ -143,8 +163,8 @@ namespace Projet.Modules.UI
             Console.Write("Ville d'arrivée : ");
             string arrivee = Console.ReadLine();
 
-            var villeDepart = villes.FirstOrDefault(v => v.Nom.Equals(depart, StringComparison.OrdinalIgnoreCase));
-            var villeArrivee = villes.FirstOrDefault(v => v.Nom.Equals(arrivee, StringComparison.OrdinalIgnoreCase));
+            Ville villeDepart = villes.FirstOrDefault(v => v.Nom.Equals(depart, StringComparison.OrdinalIgnoreCase));
+            Ville villeArrivee = villes.FirstOrDefault(v => v.Nom.Equals(arrivee, StringComparison.OrdinalIgnoreCase));
 
             if (villeDepart == null || villeArrivee == null)
             {
@@ -155,14 +175,14 @@ namespace Projet.Modules.UI
             }
 
             // Initialisation de la visualisation
-            var visualisation = new GrapheVisualisation(_grapheListe);
+            GrapheVisualisation visualisation = new GrapheVisualisation(this.grapheListe);
 
             // Comparaison des algorithmes
             Console.WriteLine("\n--- Comparaison des algorithmes ---\n");
 
             // Dijkstra
-            var chronoDijkstra = Stopwatch.StartNew();
-            var (cheminDijkstra, distanceDijkstra) = _grapheServiceListe.Dijkstra(villeDepart, villeArrivee);
+            Stopwatch chronoDijkstra = Stopwatch.StartNew();
+            (List<Ville> cheminDijkstra, double distanceDijkstra) = this.grapheServiceListe.Dijkstra(villeDepart, villeArrivee);
             chronoDijkstra.Stop();
             Console.WriteLine($"Dijkstra: Distance = {distanceDijkstra:F2} km, Temps = {chronoDijkstra.Elapsed.TotalMilliseconds:F4} ms");
             if (cheminDijkstra.Any())
@@ -172,8 +192,8 @@ namespace Projet.Modules.UI
             }
 
             // Bellman-Ford
-            var chronoBellmanFord = Stopwatch.StartNew();
-            var (cheminBellmanFord, distanceBellmanFord) = _grapheServiceListe.BellmanFord(villeDepart, villeArrivee);
+            Stopwatch chronoBellmanFord = Stopwatch.StartNew();
+            (List<Ville> cheminBellmanFord, double distanceBellmanFord) = this.grapheServiceListe.BellmanFord(villeDepart, villeArrivee);
             chronoBellmanFord.Stop();
             Console.WriteLine($"\nBellman-Ford: Distance = {distanceBellmanFord:F2} km, Temps = {chronoBellmanFord.Elapsed.TotalMilliseconds:F4} ms");
             if (cheminBellmanFord.Any())
@@ -183,18 +203,18 @@ namespace Projet.Modules.UI
             }
 
             // Floyd-Warshall
-            var chronoFloydWarshall = Stopwatch.StartNew();
-            var resultatFloydWarshall = _grapheServiceListe.FloydWarshall();
+            Stopwatch chronoFloydWarshall = Stopwatch.StartNew();
+            (double[,] distancesFW, int[,] predecesseursFW)? resultatFloydWarshall = this.grapheServiceListe.FloydWarshall();
             chronoFloydWarshall.Stop();
 
             if (resultatFloydWarshall.HasValue)
             {
-                var (distancesFW, predecesseursFW) = resultatFloydWarshall.Value;
-                var indexDepart = villes.IndexOf(villeDepart);
-                var indexArrivee = villes.IndexOf(villeArrivee);
+                (double[,] distancesFW, int[,] predecesseursFW) = resultatFloydWarshall.Value;
+                int indexDepart = villes.IndexOf(villeDepart);
+                int indexArrivee = villes.IndexOf(villeArrivee);
 
-                var cheminFloydWarshall = _grapheServiceListe.ReconstruireCheminFloydWarshall(indexDepart, indexArrivee, distancesFW, predecesseursFW, villes);
-                var distanceFloydWarshall = distancesFW[indexDepart, indexArrivee];
+                List<Ville> cheminFloydWarshall = this.grapheServiceListe.ReconstruireCheminFloydWarshall(indexDepart, indexArrivee, distancesFW, predecesseursFW, villes);
+                double distanceFloydWarshall = distancesFW[indexDepart, indexArrivee];
 
                 Console.WriteLine($"\nFloyd-Warshall: Distance = {distanceFloydWarshall:F2} km, Temps = {chronoFloydWarshall.Elapsed.TotalMilliseconds:F4} ms");
                 if (cheminFloydWarshall.Any())
@@ -214,6 +234,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Vérifie et affiche si le graphe est connexe.
+        /// </summary>
         private void VerifierConnexite()
         {
             Console.Clear();
@@ -221,7 +244,7 @@ namespace Projet.Modules.UI
 
             ChargerDonneesGraphe();
 
-            bool connexe = _grapheServiceListe.EstConnexe();
+            bool connexe = this.grapheServiceListe.EstConnexe();
             Console.WriteLine($"Le graphe est{(connexe ? "" : " non")} connexe.");
             if (!connexe)
             {
@@ -231,6 +254,9 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Vérifie et affiche si le graphe contient des cycles.
+        /// </summary>
         private void VerifierCycles()
         {
             Console.Clear();
@@ -238,7 +264,7 @@ namespace Projet.Modules.UI
 
             ChargerDonneesGraphe();
 
-            bool cycle = _grapheServiceListe.ContientCycle();
+            bool cycle = this.grapheServiceListe.ContientCycle();
             Console.WriteLine($"Le graphe{(cycle ? "" : " ne")} contient{(cycle ? "" : " pas")} de cycle.");
             if (cycle)
             {
@@ -248,4 +274,4 @@ namespace Projet.Modules.UI
             Console.ReadKey();
         }
     }
-} 
+}

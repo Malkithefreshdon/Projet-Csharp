@@ -4,26 +4,45 @@ using System.Linq;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Représente un graphe de villes avec des liens pondérés.
+    /// </summary>
     public class GrapheListe : Graphe
     {
-        private readonly Dictionary<Ville, List<(Ville voisin, double poids)>> _adjacence;
+        private readonly Dictionary<Ville, List<(Ville voisin, double poids)>> adjacence;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe GrapheListe.
+        /// </summary>
+        /// <param name="estNonOriente">Indique si le graphe est non orienté.</param>
         public GrapheListe(bool estNonOriente = true) : base(estNonOriente)
         {
-            _adjacence = new Dictionary<Ville, List<(Ville, double)>>();
+            adjacence = new Dictionary<Ville, List<(Ville voisin, double poids)>>();
         }
 
+        /// <summary>
+        /// Ajoute une ville au graphe si elle n'existe pas déjà.
+        /// </summary>
+        /// <param name="v">La ville à ajouter.</param>
+        /// <returns>True si la ville a été ajoutée, False si elle existait déjà.</returns>
         public override bool AjouterVille(Ville v)
         {
             if (v == null) throw new ArgumentNullException(nameof(v));
-            if (!_adjacence.ContainsKey(v))
+            if (!adjacence.ContainsKey(v))
             {
-                _adjacence[v] = new List<(Ville, double)>();
+                adjacence[v] = new List<(Ville voisin, double poids)>();
                 return true;
             }
-            return false; 
+            return false;
         }
 
+        /// <summary>
+        /// Ajoute un lien pondéré entre deux villes.
+        /// </summary>
+        /// <param name="origine">La ville d'origine.</param>
+        /// <param name="destination">La ville de destination.</param>
+        /// <param name="poids">Le poids (distance) du lien.</param>
+        /// <returns>True si le lien a été ajouté, False s'il existait déjà.</returns>
         public override bool AjouterLien(Ville origine, Ville destination, double poids)
         {
             if (origine == null) throw new ArgumentNullException(nameof(origine));
@@ -33,51 +52,67 @@ namespace Projet.Modules
             AjouterVille(origine);
             AjouterVille(destination);
 
-            if (!_adjacence[origine].Any(lien => lien.voisin.Equals(destination)))
+            if (!adjacence[origine].Any(lien => lien.voisin.Equals(destination)))
             {
-                _adjacence[origine].Add((destination, poids));
+                adjacence[origine].Add((voisin: destination, poids: poids));
                 if (EstNonOriente && !origine.Equals(destination))
                 {
-                    if (!_adjacence[destination].Any(lien => lien.voisin.Equals(origine)))
+                    if (!adjacence[destination].Any(lien => lien.voisin.Equals(origine)))
                     {
-                        _adjacence[destination].Add((origine, poids));
+                        adjacence[destination].Add((voisin: origine, poids: poids));
                     }
-                    // Optionnel : mettre à jour le poids si le lien inverse existe avec un poids différent?
-                    // else { /* gérer conflit de poids si nécessaire */ }
                 }
-                return true; // Lien ajouté
+                return true;
             }
-            // Optionnel : Mettre à jour le poids si le lien existe déjà ?
-            // else { /* trouver le lien et mettre à jour poids */ }
-            return false; 
+            return false;
         }
 
+        /// <summary>
+        /// Obtient la liste des villes voisines et leurs distances depuis une ville donnée.
+        /// </summary>
+        /// <param name="v">La ville dont on veut obtenir les voisins.</param>
+        /// <returns>Une collection de tuples (ville voisine, poids du lien).</returns>
         public override IEnumerable<(Ville voisin, double poids)> ObtenirVoisins(Ville v)
         {
             if (v == null) throw new ArgumentNullException(nameof(v));
-            if (_adjacence.TryGetValue(v, out var voisins))
+            if (adjacence.TryGetValue(v, out var voisins))
             {
                 return voisins;
             }
-            return Enumerable.Empty<(Ville, double)>(); 
+            return Enumerable.Empty<(Ville voisin, double poids)>();
         }
 
+        /// <summary>
+        /// Obtient toutes les villes du graphe.
+        /// </summary>
+        /// <returns>Une collection de toutes les villes du graphe.</returns>
         public override IEnumerable<Ville> GetToutesLesVilles()
         {
-            return _adjacence.Keys.ToList(); 
+            return adjacence.Keys.ToList();
         }
 
+        /// <summary>
+        /// Vérifie si une ville existe dans le graphe.
+        /// </summary>
+        /// <param name="v">La ville à vérifier.</param>
+        /// <returns>True si la ville existe dans le graphe, sinon False.</returns>
         public override bool ContientVille(Ville v)
         {
             if (v == null) return false;
-            return _adjacence.ContainsKey(v);
+            return adjacence.ContainsKey(v);
         }
 
+        /// <summary>
+        /// Obtient le poids du lien entre deux villes.
+        /// </summary>
+        /// <param name="origine">La ville d'origine.</param>
+        /// <param name="destination">La ville de destination.</param>
+        /// <returns>Le poids du lien ou double.PositiveInfinity si le lien n'existe pas.</returns>
         public override double ObtenirPoidsLien(Ville origine, Ville destination)
         {
             if (origine == null || destination == null) return double.PositiveInfinity;
 
-            if (_adjacence.TryGetValue(origine, out var voisins))
+            if (adjacence.TryGetValue(origine, out var voisins))
             {
                 var lien = voisins.FirstOrDefault(l => l.voisin.Equals(destination));
                 if (lien.voisin != null)
@@ -85,7 +120,7 @@ namespace Projet.Modules
                     return lien.poids;
                 }
             }
-            return double.PositiveInfinity; 
+            return double.PositiveInfinity;
         }
     }
 }

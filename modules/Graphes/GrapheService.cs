@@ -1,25 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics; 
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text; 
+using System.Text;
 using OfficeOpenXml;
 
 namespace Projet.Modules
 {
+    /// <summary>
+    /// Service offrant des fonctionnalités avancées pour manipuler les graphes.
+    /// </summary>
     public class GrapheService
     {
-        private readonly Graphe _graphe;
+        private readonly Graphe graphe;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de la classe GrapheService.
+        /// </summary>
+        /// <param name="graphe">Le graphe à manipuler.</param>
         public GrapheService(Graphe graphe)
         {
-            _graphe = graphe ?? throw new ArgumentNullException(nameof(graphe));
+            this.graphe = graphe ?? throw new ArgumentNullException(nameof(graphe));
         }
 
+        /// <summary>
+        /// Charge un graphe depuis un fichier Excel.
+        /// </summary>
+        /// <param name="cheminFichier">Le chemin du fichier Excel contenant les données du graphe.</param>
         public void ChargerGrapheDepuisXlsx(string cheminFichier)
         {
-
             FileInfo fichierInfo = new FileInfo(cheminFichier);
 
             if (!fichierInfo.Exists)
@@ -30,7 +40,7 @@ namespace Projet.Modules
 
             try
             {
-                using (var package = new ExcelPackage(fichierInfo))
+                using (ExcelPackage package = new ExcelPackage(fichierInfo))
                 {
                     // On suppose que les données sont dans la première feuille de calcul
                     ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
@@ -54,7 +64,7 @@ namespace Projet.Modules
                     {
                         string nomVilleA = worksheet.Cells[row, 1].Text?.Trim();
                         string nomVilleB = worksheet.Cells[row, 2].Text?.Trim();
-                        object valeurDistanceObj = worksheet.Cells[row, 3].Value; 
+                        object valeurDistanceObj = worksheet.Cells[row, 3].Value;
 
                         // Ignorer les lignes où les noms de ville sont manquants
                         if (string.IsNullOrWhiteSpace(nomVilleA) && string.IsNullOrWhiteSpace(nomVilleB))
@@ -67,28 +77,26 @@ namespace Projet.Modules
                             continue;
                         }
 
-
                         double distance;
                         bool parseOk = false;
 
-                        if (valeurDistanceObj is double d) 
+                        if (valeurDistanceObj is double d)
                         {
                             distance = d;
                             parseOk = true;
                         }
-                        else if (valeurDistanceObj != null) 
+                        else if (valeurDistanceObj != null)
                         {
                             parseOk = double.TryParse(valeurDistanceObj.ToString()?.Trim(),
-                                                      System.Globalization.NumberStyles.Any, 
-                                                      System.Globalization.CultureInfo.InvariantCulture, 
+                                                      System.Globalization.NumberStyles.Any,
+                                                      System.Globalization.CultureInfo.InvariantCulture,
                                                       out distance);
                         }
                         else
                         {
                             Console.WriteLine($"Avertissement: La cellule de distance est vide à la ligne {row} pour le lien {nomVilleA}-{nomVilleB} dans {cheminFichier}. Ligne ignorée.");
-                            continue; 
+                            continue;
                         }
-
 
                         if (parseOk)
                         {
@@ -96,7 +104,7 @@ namespace Projet.Modules
                             {
                                 Ville villeA = new Ville(nomVilleA);
                                 Ville villeB = new Ville(nomVilleB);
-                                _graphe.AjouterLien(villeA, villeB, distance);
+                                graphe.AjouterLien(villeA, villeB, distance);
                             }
                             else
                             {
@@ -108,36 +116,36 @@ namespace Projet.Modules
                             Console.WriteLine($"Avertissement: Impossible de parser la distance '{valeurDistanceObj}' pour le lien {nomVilleA}-{nomVilleB} à la ligne {row} dans {cheminFichier}.");
                         }
                     }
-                } 
+                }
 
-                Console.WriteLine($"Graphe chargé depuis {cheminFichier}. Nombre de villes: {_graphe.GetToutesLesVilles().Count()}.");
+                Console.WriteLine($"Graphe chargé depuis {cheminFichier}. Nombre de villes: {graphe.GetToutesLesVilles().Count()}.");
             }
             catch (IOException ex)
             {
                 Console.WriteLine($"Erreur d'entrée/sortie lors de la lecture de {cheminFichier}: {ex.Message}");
             }
-            catch (InvalidDataException ex) 
+            catch (InvalidDataException ex)
             {
                 Console.WriteLine($"Erreur: Le fichier Excel '{cheminFichier}' semble corrompu ou n'est pas un format XLSX valide. {ex.Message}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur inattendue lors du chargement du graphe depuis {cheminFichier}: {ex.Message}");
-               
             }
         }
 
         /// <summary>
         /// Effectue un parcours en largeur (BFS) à partir d'une ville de départ.
         /// </summary>
+        /// <param name="depart">La ville de départ pour le parcours.</param>
         /// <returns>La liste des villes dans l'ordre de visite.</returns>
         public List<Ville> BFS(Ville depart)
         {
-            if (depart == null || !_graphe.ContientVille(depart)) return new List<Ville>();
+            if (depart == null || !graphe.ContientVille(depart)) return new List<Ville>();
 
-            var visites = new List<Ville>();
-            var fileAttente = new Queue<Ville>();
-            var visitesSet = new HashSet<Ville>(); 
+            List<Ville> visites = new List<Ville>();
+            Queue<Ville> fileAttente = new Queue<Ville>();
+            HashSet<Ville> visitesSet = new HashSet<Ville>();
 
             fileAttente.Enqueue(depart);
             visitesSet.Add(depart);
@@ -147,7 +155,7 @@ namespace Projet.Modules
                 Ville courant = fileAttente.Dequeue();
                 visites.Add(courant);
 
-                foreach (var (voisin, poids) in _graphe.ObtenirVoisins(courant))
+                foreach ((Ville voisin, double poids) in graphe.ObtenirVoisins(courant))
                 {
                     if (!visitesSet.Contains(voisin))
                     {
@@ -162,23 +170,30 @@ namespace Projet.Modules
         /// <summary>
         /// Effectue un parcours en profondeur (DFS) récursif à partir d'une ville de départ.
         /// </summary>
+        /// <param name="depart">La ville de départ pour le parcours.</param>
         /// <returns>La liste des villes dans l'ordre de visite.</returns>
         public List<Ville> DFS(Ville depart)
         {
-            if (depart == null || !_graphe.ContientVille(depart)) return new List<Ville>();
+            if (depart == null || !graphe.ContientVille(depart)) return new List<Ville>();
 
-            var visites = new List<Ville>();
-            var visitesSet = new HashSet<Ville>(); 
+            List<Ville> visites = new List<Ville>();
+            HashSet<Ville> visitesSet = new HashSet<Ville>();
             DFSRecursif(depart, visites, visitesSet);
             return visites;
         }
 
+        /// <summary>
+        /// Méthode récursive pour le parcours en profondeur.
+        /// </summary>
+        /// <param name="courant">La ville courante.</param>
+        /// <param name="visites">La liste des villes visitées.</param>
+        /// <param name="visitesSet">L'ensemble des villes visitées pour une recherche efficace.</param>
         private void DFSRecursif(Ville courant, List<Ville> visites, HashSet<Ville> visitesSet)
         {
             visites.Add(courant);
             visitesSet.Add(courant);
 
-            foreach (var (voisin, poids) in _graphe.ObtenirVoisins(courant))
+            foreach ((Ville voisin, double poids) in graphe.ObtenirVoisins(courant))
             {
                 if (!visitesSet.Contains(voisin))
                 {
@@ -190,11 +205,12 @@ namespace Projet.Modules
         /// <summary>
         /// Calcule le plus court chemin entre deux villes en utilisant l'algorithme de Dijkstra.
         /// </summary>
-        /// <returns>Un tuple contenant la liste des villes formant le chemin et la distance totale.
-        /// Retourne une liste vide et distance infinie si aucun chemin n'est trouvé.</returns>
+        /// <param name="depart">La ville de départ.</param>
+        /// <param name="arrivee">La ville d'arrivée.</param>
+        /// <returns>Un tuple contenant la liste des villes formant le chemin et la distance totale.</returns>
         public (List<Ville> chemin, double distanceTotale) Dijkstra(Ville depart, Ville arrivee)
         {
-            if (depart == null || arrivee == null || !_graphe.ContientVille(depart) || !_graphe.ContientVille(arrivee))
+            if (depart == null || arrivee == null || !graphe.ContientVille(depart) || !graphe.ContientVille(arrivee))
                 return (new List<Ville>(), double.PositiveInfinity);
 
             if (depart.Equals(arrivee))
@@ -204,7 +220,7 @@ namespace Projet.Modules
             Dictionary<Ville, Ville> predecesseurs = new Dictionary<Ville, Ville>();
             List<Ville> nonVisites = new List<Ville>();
 
-            foreach (Ville ville in _graphe.GetToutesLesVilles())
+            foreach (Ville ville in graphe.GetToutesLesVilles())
             {
                 distances[ville] = ville.Equals(depart) ? 0 : double.PositiveInfinity;
                 nonVisites.Add(ville);
@@ -222,7 +238,7 @@ namespace Projet.Modules
 
                 nonVisites.Remove(villeCourante);
 
-                foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(villeCourante))
+                foreach ((Ville voisin, double poids) in graphe.ObtenirVoisins(villeCourante))
                 {
                     if (!nonVisites.Contains(voisin))
                         continue;
@@ -252,6 +268,12 @@ namespace Projet.Modules
             return (chemin, distances[arrivee]);
         }
 
+        /// <summary>
+        /// Trouve la ville avec la distance minimale parmi les villes non visitées.
+        /// </summary>
+        /// <param name="nonVisites">Liste des villes non visitées.</param>
+        /// <param name="distances">Dictionnaire des distances.</param>
+        /// <returns>La ville avec la distance minimale.</returns>
         private Ville TrouverVilleMinimale(List<Ville> nonVisites, Dictionary<Ville, double> distances)
         {
             double distanceMin = double.PositiveInfinity;
@@ -270,25 +292,26 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Calcule le plus court chemin en utilisant Bellman-Ford. Capable de gérer les poids négatifs.
-        /// Utile pour comparaison, bien que les distances réelles soient positives.
+        /// Calcule le plus court chemin en utilisant l'algorithme de Bellman-Ford.
         /// </summary>
-        /// <returns>Tuple (chemin, distance).</returns>
+        /// <param name="depart">La ville de départ.</param>
+        /// <param name="arrivee">La ville d'arrivée.</param>
+        /// <returns>Un tuple contenant la liste des villes formant le chemin et la distance totale.</returns>
         public (List<Ville> chemin, double distanceTotale) BellmanFord(Ville depart, Ville arrivee)
         {
-            if (depart == null || arrivee == null || !_graphe.ContientVille(depart) || !_graphe.ContientVille(arrivee))
+            if (depart == null || arrivee == null || !graphe.ContientVille(depart) || !graphe.ContientVille(arrivee))
                 return (new List<Ville>(), double.PositiveInfinity);
 
             Dictionary<Ville, double> distances = new Dictionary<Ville, double>();
             Dictionary<Ville, Ville> predecesseurs = new Dictionary<Ville, Ville>();
-            List<Ville> toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
-            List<Lien> tousLesLiens = new List<Lien>(); 
+            List<Ville> toutesLesVilles = graphe.GetToutesLesVilles().ToList();
+            List<Lien> tousLesLiens = new List<Lien>();
 
             foreach (Ville ville in toutesLesVilles)
             {
                 distances[ville] = double.PositiveInfinity;
                 predecesseurs[ville] = null;
-                foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(ville))
+                foreach ((Ville voisin, double poids) in graphe.ObtenirVoisins(ville))
                 {
                     tousLesLiens.Add(new Lien(ville, voisin, poids));
                 }
@@ -326,7 +349,7 @@ namespace Projet.Modules
                 {
                     if (!etape.Equals(depart))
                     {
-                        return (new List<Ville>(), double.PositiveInfinity); 
+                        return (new List<Ville>(), double.PositiveInfinity);
                     }
                     etape = null;
                 }
@@ -342,29 +365,25 @@ namespace Projet.Modules
             return (chemin, distances[arrivee]);
         }
 
-
         /// <summary>
         /// Calcule les plus courts chemins entre toutes les paires de villes en utilisant Floyd-Warshall.
         /// </summary>
-        /// <returns>Un tuple contenant deux matrices:
-        ///          1. distances[i, j] = distance la plus courte de la ville i à la ville j.
-        ///          2. predecesseurs[i, j] = index du prédécesseur sur le chemin le plus court de i à j.
-        ///          Retourne null si le graphe n'est pas compatible ou en cas d'erreur.</returns>
+        /// <returns>Un tuple contenant deux matrices: distances et prédécesseurs, ou null si le graphe n'est pas compatible.</returns>
         public (double[,] distances, int[,] predecesseurs)? FloydWarshall()
         {
             List<Ville> villesList;
             double[,] matriceDistances;
             int nbVilles;
 
-            if (_graphe is GrapheMatrice grapheMatrice)
+            if (graphe is GrapheMatrice grapheMatrice)
             {
-                matriceDistances = grapheMatrice.GetMatriceAdjacence(); 
+                matriceDistances = grapheMatrice.GetMatriceAdjacence();
                 villesList = grapheMatrice.GetVilleList();
                 nbVilles = villesList.Count;
             }
             else
             {
-                villesList = _graphe.GetToutesLesVilles().ToList();
+                villesList = graphe.GetToutesLesVilles().ToList();
                 nbVilles = villesList.Count;
                 if (nbVilles == 0) return null;
 
@@ -377,7 +396,7 @@ namespace Projet.Modules
                     for (int j = 0; j < nbVilles; j++)
                     {
                         if (i == j) matriceDistances[i, j] = 0;
-                        else matriceDistances[i, j] = _graphe.ObtenirPoidsLien(villesList[i], villesList[j]);
+                        else matriceDistances[i, j] = graphe.ObtenirPoidsLien(villesList[i], villesList[j]);
                     }
                 }
             }
@@ -394,12 +413,12 @@ namespace Projet.Modules
                     }
                     else
                     {
-                        matricePredecesseurs[i, j] = i; 
+                        matricePredecesseurs[i, j] = i;
                     }
                 }
             }
 
-            for (int k = 0; k < nbVilles; k++) 
+            for (int k = 0; k < nbVilles; k++)
             {
                 for (int i = 0; i < nbVilles; i++)
                 {
@@ -410,7 +429,7 @@ namespace Projet.Modules
                             matriceDistances[i, k] + matriceDistances[k, j] < matriceDistances[i, j])
                         {
                             matriceDistances[i, j] = matriceDistances[i, k] + matriceDistances[k, j];
-                            matricePredecesseurs[i, j] = matricePredecesseurs[k, j]; 
+                            matricePredecesseurs[i, j] = matricePredecesseurs[k, j];
                         }
                     }
                 }
@@ -419,10 +438,14 @@ namespace Projet.Modules
             return (matriceDistances, matricePredecesseurs);
         }
 
-
         /// <summary>
         /// Reconstruit le chemin le plus court entre deux villes à partir des résultats de Floyd-Warshall.
         /// </summary>
+        /// <param name="indexDepart">Index de la ville de départ.</param>
+        /// <param name="indexArrivee">Index de la ville d'arrivée.</param>
+        /// <param name="distances">Matrice des distances.</param>
+        /// <param name="predecesseurs">Matrice des prédécesseurs.</param>
+        /// <param name="villesList">Liste des villes.</param>
         /// <returns>La liste des villes formant le chemin, ou une liste vide si aucun chemin n'existe.</returns>
         public List<Ville> ReconstruireCheminFloydWarshall(int indexDepart, int indexArrivee, double[,] distances, int[,] predecesseurs, List<Ville> villesList)
         {
@@ -430,12 +453,12 @@ namespace Projet.Modules
                 indexDepart < 0 || indexDepart >= villesList.Count ||
                 indexArrivee < 0 || indexArrivee >= villesList.Count)
             {
-                return new List<Ville>(); 
+                return new List<Ville>();
             }
 
             if (double.IsPositiveInfinity(distances[indexDepart, indexArrivee]))
             {
-                return new List<Ville>(); 
+                return new List<Ville>();
             }
 
             List<Ville> chemin = new List<Ville>();
@@ -458,12 +481,11 @@ namespace Projet.Modules
                 }
             }
 
-            if (courant == -1 && indexDepart != indexArrivee) 
+            if (courant == -1 && indexDepart != indexArrivee)
             {
                 Console.WriteLine("Erreur: Impossible de reconstruire le chemin complet (prédécesseur manquant).");
                 return new List<Ville>();
             }
-
 
             chemin.Add(villesList[indexDepart]);
             while (pileIndices.Count > 0)
@@ -477,23 +499,20 @@ namespace Projet.Modules
                 return new List<Ville>();
             }
 
-
             return chemin;
         }
 
-
         /// <summary>
         /// Vérifie si le graphe est connexe (pour un graphe non orienté).
-        /// Utilise un parcours (BFS ou DFS) pour voir si toutes les villes sont atteignables depuis un point de départ.
         /// </summary>
         /// <returns>True si le graphe est connexe, False sinon.</returns>
         public bool EstConnexe()
         {
-            List<Ville> toutesLesVilles = _graphe.GetToutesLesVilles().ToList();
+            List<Ville> toutesLesVilles = graphe.GetToutesLesVilles().ToList();
             if (!toutesLesVilles.Any()) return true;
 
             Ville depart = toutesLesVilles.First();
-            List<Ville> visites = BFS(depart); // Ou DFS(depart)
+            List<Ville> visites = BFS(depart);
 
             return visites.Count == toutesLesVilles.Count;
         }
@@ -504,11 +523,11 @@ namespace Projet.Modules
         /// <returns>True si au moins un cycle est détecté, False sinon.</returns>
         public bool ContientCycle()
         {
-            IEnumerable<Ville> toutesLesVilles = _graphe.GetToutesLesVilles();
+            IEnumerable<Ville> toutesLesVilles = graphe.GetToutesLesVilles();
             if (!toutesLesVilles.Any()) return false;
 
             HashSet<Ville> visites = new HashSet<Ville>();
-            HashSet<Ville> enCoursExploration = new HashSet<Ville>(); 
+            HashSet<Ville> enCoursExploration = new HashSet<Ville>();
 
             foreach (Ville ville in toutesLesVilles)
             {
@@ -520,44 +539,53 @@ namespace Projet.Modules
                     }
                 }
             }
-            return false; 
+            return false;
         }
 
+        /// <summary>
+        /// Méthode utilitaire récursive pour la détection de cycles.
+        /// </summary>
+        /// <param name="courant">La ville courante.</param>
+        /// <param name="visites">Ensemble des villes visitées.</param>
+        /// <param name="enCoursExploration">Ensemble des villes en cours d'exploration.</param>
+        /// <param name="parent">La ville parent dans le parcours.</param>
+        /// <returns>True si un cycle est détecté, False sinon.</returns>
         private bool ContientCycleUtil(Ville courant, HashSet<Ville> visites, HashSet<Ville> enCoursExploration, Ville parent)
         {
             visites.Add(courant);
             enCoursExploration.Add(courant);
 
-            foreach ((Ville voisin, double poids) in _graphe.ObtenirVoisins(courant))
+            foreach ((Ville voisin, double poids) in graphe.ObtenirVoisins(courant))
             {
                 if (enCoursExploration.Contains(voisin))
                 {
-                    if (_graphe.EstNonOriente && voisin.Equals(parent))
+                    if (graphe.EstNonOriente && voisin.Equals(parent))
                     {
-                        continue; 
+                        continue;
                     }
                     Console.WriteLine($"Cycle détecté impliquant: {courant} -> {voisin}");
-                    return true; 
+                    return true;
                 }
 
                 if (!visites.Contains(voisin))
                 {
                     if (ContientCycleUtil(voisin, visites, enCoursExploration, courant))
                     {
-                        return true; 
+                        return true;
                     }
                 }
             }
 
-            enCoursExploration.Remove(courant); 
-            return false; 
+            enCoursExploration.Remove(courant);
+            return false;
         }
 
-
         /// <summary>
-        /// Compare les temps d'exécution de Dijkstra sur deux implémentations de graphe (si possible).
-        /// Affiche les résultats dans la console.
+        /// Compare les temps d'exécution de Dijkstra sur deux implémentations de graphe.
         /// </summary>
+        /// <param name="depart">Ville de départ.</param>
+        /// <param name="arrivee">Ville d'arrivée.</param>
+        /// <param name="autreGraphe">L'autre graphe à comparer.</param>
         public void ComparerImplementationsDijkstra(Ville depart, Ville arrivee, Graphe autreGraphe)
         {
             if (autreGraphe == null)
@@ -568,15 +596,15 @@ namespace Projet.Modules
 
             Console.WriteLine($"\n--- Comparaison d'exécution Dijkstra ({depart} -> {arrivee}) ---");
 
-            var chrono1 = Stopwatch.StartNew();
+            Stopwatch chrono1 = Stopwatch.StartNew();
             (List<Ville> chemin1, double dist1) = this.Dijkstra(depart, arrivee);
             chrono1.Stop();
-            Console.WriteLine($"Graphe actuel ({_graphe.GetType().Name}):");
+            Console.WriteLine($"Graphe actuel ({graphe.GetType().Name}):");
             AfficherResultatChemin(chemin1, dist1, chrono1.Elapsed);
 
             GrapheService serviceAutreGraphe = new GrapheService(autreGraphe);
-            var chrono2 = Stopwatch.StartNew();
-            (List<Ville>chemin2, double dist2) = serviceAutreGraphe.Dijkstra(depart, arrivee);
+            Stopwatch chrono2 = Stopwatch.StartNew();
+            (List<Ville> chemin2, double dist2) = serviceAutreGraphe.Dijkstra(depart, arrivee);
             chrono2.Stop();
             Console.WriteLine($"\nAutre Graphe ({autreGraphe.GetType().Name}):");
             AfficherResultatChemin(chemin2, dist2, chrono2.Elapsed);
@@ -584,6 +612,12 @@ namespace Projet.Modules
             Console.WriteLine("--- Fin Comparaison ---");
         }
 
+        /// <summary>
+        /// Affiche les résultats d'un calcul de chemin.
+        /// </summary>
+        /// <param name="chemin">Le chemin calculé.</param>
+        /// <param name="distance">La distance totale du chemin.</param>
+        /// <param name="tempsExecution">Le temps d'exécution de l'algorithme.</param>
         public static void AfficherResultatChemin(List<Ville> chemin, double distance, TimeSpan? tempsExecution = null)
         {
             if (chemin != null && chemin.Any())
@@ -594,7 +628,7 @@ namespace Projet.Modules
             else
             {
                 Console.WriteLine("  Aucun chemin trouvé.");
-                Console.WriteLine($"  Distance: {distance}"); 
+                Console.WriteLine($"  Distance: {distance}");
             }
             if (tempsExecution.HasValue)
             {
@@ -603,3 +637,4 @@ namespace Projet.Modules
         }
     }
 }
+

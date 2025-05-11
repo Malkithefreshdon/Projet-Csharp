@@ -12,19 +12,25 @@ namespace Projet.Modules
     /// </summary>
     public class FinanceSimple
     {
-        private readonly string _jsonFilePath;
-        private double _solde;
-        private List<TransactionSimple> _transactions;
-        private readonly CommandeManager _commandeManager;
-        private readonly SalarieManager _salarieManager;
+        private readonly string jsonFilePath;
+        private double solde;
+        private List<TransactionSimple> transactions;
+        private readonly CommandeManager commandeManager;
+        private readonly SalarieManager salarieManager;
 
+        /// <summary>
+        /// Initialise une nouvelle instance du module de gestion financière
+        /// </summary>
+        /// <param name="jsonFilePath">Chemin du fichier JSON pour stocker les données (optionnel)</param>
+        /// <param name="commandeManager">Gestionnaire de commandes (optionnel)</param>
+        /// <param name="salarieManager">Gestionnaire de salariés (optionnel)</param>
         public FinanceSimple(string jsonFilePath = null, CommandeManager commandeManager = null, SalarieManager salarieManager = null)
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            _jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "finance.json");
-            _transactions = new List<TransactionSimple>();
-            _commandeManager = commandeManager ?? new CommandeManager();
-            _salarieManager = salarieManager ?? new SalarieManager();
+            this.jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "finance.json");
+            this.transactions = new List<TransactionSimple>();
+            this.commandeManager = commandeManager ?? new CommandeManager();
+            this.salarieManager = salarieManager ?? new SalarieManager();
 
             // Définir la culture pour utiliser l'euro comme devise
             CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
@@ -40,11 +46,11 @@ namespace Projet.Modules
         {
             try
             {
-                if (!File.Exists(_jsonFilePath))
+                if (!File.Exists(jsonFilePath))
                 {
                     // Initialiser avec un solde par défaut
-                    _solde = 150000;
-                    _transactions = new List<TransactionSimple>
+                    solde = 150000;
+                    transactions = new List<TransactionSimple>
                     {
                         new TransactionSimple
                         {
@@ -60,21 +66,21 @@ namespace Projet.Modules
                     return;
                 }
 
-                string json = File.ReadAllText(_jsonFilePath);
-                var donnees = JsonSerializer.Deserialize<DonneesFinancieres>(json);
+                string json = File.ReadAllText(jsonFilePath);
+                DonneesFinancieres donnees = JsonSerializer.Deserialize<DonneesFinancieres>(json);
 
                 if (donnees != null)
                 {
-                    _solde = donnees.Solde;
-                    _transactions = donnees.Transactions ?? new List<TransactionSimple>();
+                    solde = donnees.Solde;
+                    transactions = donnees.Transactions ?? new List<TransactionSimple>();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors du chargement des données financières: {ex.Message}");
                 // Initialiser avec des valeurs par défaut
-                _solde = 0;
-                _transactions = new List<TransactionSimple>();
+                solde = 0;
+                transactions = new List<TransactionSimple>();
             }
         }
 
@@ -85,21 +91,21 @@ namespace Projet.Modules
         {
             try
             {
-                string directory = Path.GetDirectoryName(_jsonFilePath);
+                string directory = Path.GetDirectoryName(jsonFilePath);
                 if (!Directory.Exists(directory) && !string.IsNullOrEmpty(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
 
-                var donnees = new DonneesFinancieres
+                DonneesFinancieres donnees = new DonneesFinancieres
                 {
-                    Solde = _solde,
-                    Transactions = _transactions
+                    Solde = solde,
+                    Transactions = transactions
                 };
 
-                var options = new JsonSerializerOptions { WriteIndented = true };
+                JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
                 string json = JsonSerializer.Serialize(donnees, options);
-                File.WriteAllText(_jsonFilePath, json);
+                File.WriteAllText(jsonFilePath, json);
             }
             catch (Exception ex)
             {
@@ -108,11 +114,15 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Ajoute une nouvelle transaction
+        /// Ajoute une nouvelle transaction financière
         /// </summary>
+        /// <param name="montant">Montant de la transaction</param>
+        /// <param name="type">Type de transaction (Crédit ou Débit)</param>
+        /// <param name="description">Description de la transaction</param>
+        /// <param name="categorie">Catégorie de la transaction (optionnel)</param>
         public void AjouterTransaction(double montant, string type, string description, string categorie = "Divers")
         {
-            var transaction = new TransactionSimple
+            TransactionSimple transaction = new TransactionSimple
             {
                 Date = DateTime.Now,
                 Montant = Math.Abs(montant),
@@ -124,22 +134,22 @@ namespace Projet.Modules
             // Mettre à jour le solde
             if (type.ToLower() == "crédit" || type.ToLower() == "credit")
             {
-                _solde += transaction.Montant;
+                solde += transaction.Montant;
             }
             else
             {
-                _solde -= transaction.Montant;
+                solde -= transaction.Montant;
             }
 
             // Ajouter la transaction à l'historique
-            _transactions.Add(transaction);
+            transactions.Add(transaction);
 
             // Sauvegarder les modifications
             SauvegarderDonnees();
         }
 
         /// <summary>
-        /// Affiche le tableau de bord financier
+        /// Affiche le tableau de bord financier avec les informations principales
         /// </summary>
         public void AfficherTableauDeBord()
         {
@@ -147,16 +157,16 @@ namespace Projet.Modules
             ConsoleHelper.AfficherTitre("Tableau de Bord Financier");
 
             // Afficher le solde actuel
-            Console.WriteLine($"Solde actuel: {_solde:N2} €");
+            Console.WriteLine($"Solde actuel: {solde:N2} €");
 
             // Calculer le bilan du mois en cours
             DateTime debutMois = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            double revenusMonth = _transactions
+            double revenusMonth = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "crédit" || t.Type.ToLower() == "credit"))
                 .Sum(t => t.Montant);
 
-            double depensesMonth = _transactions
+            double depensesMonth = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "débit" || t.Type.ToLower() == "debit"))
                 .Sum(t => t.Montant);
 
@@ -166,7 +176,7 @@ namespace Projet.Modules
 
             // Afficher les 5 dernières transactions
             Console.WriteLine("\nDernières transactions:");
-            foreach (var transaction in _transactions.OrderByDescending(t => t.Date).Take(5))
+            foreach (TransactionSimple transaction in transactions.OrderByDescending(t => t.Date).Take(5))
             {
                 string typeSymbole = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? "+" : "-";
                 ConsoleColor couleur = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? ConsoleColor.Green : ConsoleColor.Red;
@@ -189,14 +199,14 @@ namespace Projet.Modules
             DateTime debutMois = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
             // Grouper les transactions par catégorie
-            var revenusParCategorie = _transactions
+            var revenusParCategorie = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "crédit" || t.Type.ToLower() == "credit"))
                 .GroupBy(t => t.Categorie)
                 .Select(g => new { Categorie = g.Key, Montant = g.Sum(t => t.Montant) })
                 .OrderByDescending(x => x.Montant)
                 .ToList();
 
-            var depensesParCategorie = _transactions
+            var depensesParCategorie = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "débit" || t.Type.ToLower() == "debit"))
                 .GroupBy(t => t.Categorie)
                 .Select(g => new { Categorie = g.Key, Montant = g.Sum(t => t.Montant) })
@@ -237,7 +247,7 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Affiche l'historique des transactions
+        /// Affiche l'historique complet des transactions
         /// </summary>
         public void AfficherHistorique()
         {
@@ -247,7 +257,7 @@ namespace Projet.Modules
             Console.WriteLine("Date       | Type   | Montant      | Catégorie     | Description");
             Console.WriteLine("---------- | ------ | ------------ | ------------- | -----------");
 
-            foreach (var transaction in _transactions.OrderByDescending(t => t.Date))
+            foreach (TransactionSimple transaction in transactions.OrderByDescending(t => t.Date))
             {
                 ConsoleColor couleur = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? ConsoleColor.Green : ConsoleColor.Red;
 
@@ -262,13 +272,13 @@ namespace Projet.Modules
         /// </summary>
         public void SynchroniserAvecCommandes()
         {
-            var commandes = _commandeManager.GetToutesLesCommandes();
+            List<Commande> commandes = commandeManager.GetToutesLesCommandes();
             int compteur = 0;
 
-            foreach (var commande in commandes)
+            foreach (Commande commande in commandes)
             {
                 // Vérifier si la commande existe déjà dans les transactions
-                bool transactionExiste = _transactions.Any(t =>
+                bool transactionExiste = transactions.Any(t =>
                     t.Type.ToLower() == "crédit" &&
                     t.Description.Contains($"Commande #{commande.Id}"));
 
@@ -292,12 +302,12 @@ namespace Projet.Modules
         /// </summary>
         public void GenererTransactionsSalaires()
         {
-            var salaries = _salarieManager.GetTousLesSalaries();
+            List<Salarie> salaries = salarieManager.GetTousLesSalaries();
             DateTime maintenant = DateTime.Now;
             string moisAnnee = $"{maintenant:MM/yyyy}";
 
             // Vérifier si les salaires ont déjà été payés ce mois-ci
-            bool salairesMoisDejaPayes = _transactions.Any(t =>
+            bool salairesMoisDejaPayes = transactions.Any(t =>
                 t.Type.ToLower() == "débit" &&
                 t.Categorie == "Salaires" &&
                 t.Description.Contains(moisAnnee));
@@ -306,7 +316,7 @@ namespace Projet.Modules
             {
                 double totalSalaires = 0;
 
-                foreach (var salarie in salaries)
+                foreach (Salarie salarie in salaries)
                 {
                     totalSalaires += (double)salarie.Salaire;
                 }
@@ -372,12 +382,14 @@ namespace Projet.Modules
         /// <summary>
         /// Génère un rapport financier pour une période donnée
         /// </summary>
+        /// <param name="debut">Date de début de la période</param>
+        /// <param name="fin">Date de fin de la période</param>
         private void GenererRapportPeriode(DateTime debut, DateTime fin)
         {
             Console.Clear();
             ConsoleHelper.AfficherTitre($"Rapport du {debut:dd/MM/yyyy} au {fin:dd/MM/yyyy}");
 
-            var transactionsPeriode = _transactions
+            List<TransactionSimple> transactionsPeriode = transactions
                 .Where(t => t.Date >= debut && t.Date <= fin)
                 .ToList();
 
@@ -432,7 +444,14 @@ namespace Projet.Modules
     /// </summary>
     public class DonneesFinancieres
     {
+        /// <summary>
+        /// Solde actuel du compte
+        /// </summary>
         public double Solde { get; set; }
+
+        /// <summary>
+        /// Liste des transactions
+        /// </summary>
         public List<TransactionSimple> Transactions { get; set; }
     }
 
@@ -441,10 +460,29 @@ namespace Projet.Modules
     /// </summary>
     public class TransactionSimple
     {
+        /// <summary>
+        /// Date de la transaction
+        /// </summary>
         public DateTime Date { get; set; }
+
+        /// <summary>
+        /// Montant de la transaction
+        /// </summary>
         public double Montant { get; set; }
-        public string Type { get; set; }  // "Crédit" ou "Débit"
+
+        /// <summary>
+        /// Type de transaction (Crédit ou Débit)
+        /// </summary>
+        public string Type { get; set; }
+
+        /// <summary>
+        /// Description de la transaction
+        /// </summary>
         public string Description { get; set; }
+
+        /// <summary>
+        /// Catégorie de la transaction
+        /// </summary>
         public string Categorie { get; set; } = "Divers";
     }
 }

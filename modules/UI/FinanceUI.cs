@@ -3,15 +3,26 @@ using Projet.Modules;
 
 namespace Projet.Modules.UI
 {
+    /// <summary>
+    /// Interface utilisateur pour la gestion financière
+    /// </summary>
     public class FinanceUI
     {
-        private readonly FinanceSimple _financeService;
+        private readonly FinanceSimple financeService;
 
+        /// <summary>
+        /// Initialise une nouvelle instance de l'interface utilisateur financière
+        /// </summary>
+        /// <param name="commandeManager">Gestionnaire de commandes</param>
+        /// <param name="salarieManager">Gestionnaire de salariés</param>
         public FinanceUI(CommandeManager commandeManager, SalarieManager salarieManager)
         {
-            _financeService = new FinanceSimple(null, commandeManager, salarieManager);
+            financeService = new FinanceSimple(null, commandeManager, salarieManager);
         }
 
+        /// <summary>
+        /// Affiche le menu principal de gestion financière
+        /// </summary>
         public void AfficherMenu()
         {
             bool continuer = true;
@@ -32,12 +43,12 @@ namespace Projet.Modules.UI
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        _financeService.AfficherTableauDeBord();
+                        financeService.AfficherTableauDeBord();
                         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
                         Console.ReadKey();
                         break;
                     case "2":
-                        _financeService.AfficherHistorique();
+                        financeService.AfficherHistorique();
                         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
                         Console.ReadKey();
                         break;
@@ -48,17 +59,17 @@ namespace Projet.Modules.UI
                         AjouterSortieArgent();
                         break;
                     case "5":
-                        _financeService.SynchroniserAvecCommandes();
+                        financeService.SynchroniserAvecCommandes();
                         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
                         Console.ReadKey();
                         break;
                     case "6":
-                        _financeService.GenererTransactionsSalaires();
+                        financeService.GenererTransactionsSalaires();
                         Console.WriteLine("\nAppuyez sur une touche pour continuer...");
                         Console.ReadKey();
                         break;
                     case "7":
-                        _financeService.GenererRapports();
+                        financeService.GenererRapports();
                         break;
                     case "0":
                         continuer = false;
@@ -72,6 +83,9 @@ namespace Projet.Modules.UI
             }
         }
 
+        /// <summary>
+        /// Interface pour ajouter une entrée d'argent
+        /// </summary>
         private void AjouterEntreeArgent()
         {
             Console.Clear();
@@ -115,13 +129,16 @@ namespace Projet.Modules.UI
                 description = $"Entrée d'argent - {categorie}";
             }
 
-            _financeService.AjouterTransaction(montant, "Crédit", description, categorie);
+            financeService.AjouterTransaction(montant, "Crédit", description, categorie);
 
             Console.WriteLine($"\nTransaction de {montant:N2} € ajoutée avec succès!");
             Console.WriteLine("Appuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Interface pour ajouter une sortie d'argent
+        /// </summary>
         private void AjouterSortieArgent()
         {
             Console.Clear();
@@ -171,11 +188,11 @@ namespace Projet.Modules.UI
                 description = $"Sortie d'argent - {categorie}";
             }
 
-            _financeService.AjouterTransaction(montant, "Débit", description, categorie);
+            financeService.AjouterTransaction(montant, "Débit", description, categorie);
 
             Console.WriteLine($"\nTransaction de {montant:N2} € ajoutée avec succès!");
             Console.WriteLine("Appuyez sur une touche pour continuer...");
             Console.ReadKey();
         }
     }
-} 
+}
