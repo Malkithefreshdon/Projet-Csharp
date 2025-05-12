@@ -115,12 +115,23 @@ namespace Projet.Modules
         }
 
         /// <summary>
+        /// Méthode pour obtenir tous les éléments d'une collection.
+        /// </summary>
+        /// <typeparam name="T">Le type d'éléments dans la collection.</typeparam>
+        /// <param name="collection">La collection source.</param>
+        /// <returns>Une nouvelle liste contenant tous les éléments.</returns>
+        public List<T> ObtenirTousLesElements<T>(List<T> collection)
+        {
+            return new List<T>(collection);
+        }
+
+        /// <summary>
         /// Retourne tous les clients enregistrés.
         /// </summary>
         /// <returns>Une nouvelle liste contenant tous les clients.</returns>
         public List<Client> ObtenirTousLesClients()
         {
-            return new List<Client>(clients);
+            return ObtenirTousLesElements(clients);
         }
 
         /// <summary>
