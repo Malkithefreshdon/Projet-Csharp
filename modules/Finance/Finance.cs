@@ -32,10 +32,8 @@ namespace Projet.Modules
             this.commandeManager = commandeManager ?? new CommandeManager();
             this.salarieManager = salarieManager ?? new SalarieManager();
 
-            // Définir la culture pour utiliser l'euro comme devise
             CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
 
-            // Charger ou initialiser les données
             ChargerDonnees();
         }
 
@@ -48,7 +46,6 @@ namespace Projet.Modules
             {
                 if (!File.Exists(jsonFilePath))
                 {
-                    // Initialiser avec un solde par défaut
                     solde = 150000;
                     transactions = new List<TransactionSimple>
                     {
@@ -78,7 +75,7 @@ namespace Projet.Modules
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors du chargement des données financières: {ex.Message}");
-                // Initialiser avec des valeurs par défaut
+                
                 solde = 0;
                 transactions = new List<TransactionSimple>();
             }
@@ -131,7 +128,6 @@ namespace Projet.Modules
                 Categorie = categorie
             };
 
-            // Mettre à jour le solde
             if (type.ToLower() == "crédit" || type.ToLower() == "credit")
             {
                 solde += transaction.Montant;
@@ -141,10 +137,8 @@ namespace Projet.Modules
                 solde -= transaction.Montant;
             }
 
-            // Ajouter la transaction à l'historique
             transactions.Add(transaction);
 
-            // Sauvegarder les modifications
             SauvegarderDonnees();
         }
 
@@ -156,10 +150,8 @@ namespace Projet.Modules
             Console.Clear();
             ConsoleHelper.AfficherTitre("Tableau de Bord Financier");
 
-            // Afficher le solde actuel
             Console.WriteLine($"Solde actuel: {solde:N2} €");
 
-            // Calculer le bilan du mois en cours
             DateTime debutMois = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
             double revenusMonth = transactions
@@ -174,7 +166,6 @@ namespace Projet.Modules
             Console.WriteLine($"Dépenses du mois: {depensesMonth:N2} €");
             Console.WriteLine($"Bilan du mois: {(revenusMonth - depensesMonth):N2} €");
 
-            // Afficher les 5 dernières transactions
             Console.WriteLine("\nDernières transactions:");
             foreach (TransactionSimple transaction in transactions.OrderByDescending(t => t.Date).Take(5))
             {
@@ -186,7 +177,6 @@ namespace Projet.Modules
                 Console.ResetColor();
             }
 
-            // Afficher les statistiques par catégorie
             AfficherStatistiquesParCategorie();
         }
 
@@ -195,10 +185,8 @@ namespace Projet.Modules
         /// </summary>
         private void AfficherStatistiquesParCategorie()
         {
-            // Période pour les statistiques (mois en cours)
             DateTime debutMois = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            // Grouper les transactions par catégorie
             var revenusParCategorie = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "crédit" || t.Type.ToLower() == "credit"))
                 .GroupBy(t => t.Categorie)
@@ -213,11 +201,10 @@ namespace Projet.Modules
                 .OrderByDescending(x => x.Montant)
                 .ToList();
 
-            // Afficher les revenus par catégorie
             Console.WriteLine("\nRevenus du mois par catégorie:");
             if (revenusParCategorie.Any())
             {
-                foreach (var revenu in revenusParCategorie)
+                foreach (dynamic revenu in revenusParCategorie)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"{revenu.Categorie}: {revenu.Montant:N2} €");
@@ -229,11 +216,10 @@ namespace Projet.Modules
                 Console.WriteLine("Aucun revenu ce mois-ci.");
             }
 
-            // Afficher les dépenses par catégorie
             Console.WriteLine("\nDépenses du mois par catégorie:");
             if (depensesParCategorie.Any())
             {
-                foreach (var depense in depensesParCategorie)
+                foreach (dynamic depense in depensesParCategorie)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"{depense.Categorie}: {depense.Montant:N2} €");
@@ -277,7 +263,6 @@ namespace Projet.Modules
 
             foreach (Commande commande in commandes)
             {
-                // Vérifier si la commande existe déjà dans les transactions
                 bool transactionExiste = transactions.Any(t =>
                     t.Type.ToLower() == "crédit" &&
                     t.Description.Contains($"Commande #{commande.Id}"));
@@ -306,7 +291,6 @@ namespace Projet.Modules
             DateTime maintenant = DateTime.Now;
             string moisAnnee = $"{maintenant:MM/yyyy}";
 
-            // Vérifier si les salaires ont déjà été payés ce mois-ci
             bool salairesMoisDejaPayes = transactions.Any(t =>
                 t.Type.ToLower() == "débit" &&
                 t.Categorie == "Salaires" &&
@@ -403,33 +387,29 @@ namespace Projet.Modules
 
             double benefice = revenus - depenses;
 
-            // Afficher le résumé
             Console.WriteLine($"Revenus totaux: {revenus:N2} €");
             Console.WriteLine($"Dépenses totales: {depenses:N2} €");
             Console.WriteLine($"Bénéfice: {benefice:N2} €");
 
-            // Afficher les revenus par catégorie
-            var revenusParCategorie = transactionsPeriode
+            IEnumerable<dynamic> revenusParCategorie = transactionsPeriode
                 .Where(t => t.Type.ToLower() == "crédit" || t.Type.ToLower() == "credit")
                 .GroupBy(t => t.Categorie)
                 .Select(g => new { Categorie = g.Key, Montant = g.Sum(t => t.Montant) })
                 .OrderByDescending(x => x.Montant);
 
             Console.WriteLine("\nRevenus par catégorie:");
-            foreach (var revenu in revenusParCategorie)
+            foreach (dynamic revenu in revenusParCategorie)
             {
                 Console.WriteLine($"{revenu.Categorie}: {revenu.Montant:N2} €");
             }
-
-            // Afficher les dépenses par catégorie
-            var depensesParCategorie = transactionsPeriode
+            IEnumerable<dynamic> depensesParCategorie = transactionsPeriode
                 .Where(t => t.Type.ToLower() == "débit" || t.Type.ToLower() == "debit")
                 .GroupBy(t => t.Categorie)
                 .Select(g => new { Categorie = g.Key, Montant = g.Sum(t => t.Montant) })
                 .OrderByDescending(x => x.Montant);
 
             Console.WriteLine("\nDépenses par catégorie:");
-            foreach (var depense in depensesParCategorie)
+            foreach (dynamic depense in depensesParCategorie)
             {
                 Console.WriteLine($"{depense.Categorie}: {depense.Montant:N2} €");
             }

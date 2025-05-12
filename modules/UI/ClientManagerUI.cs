@@ -21,6 +21,12 @@ namespace Projet.Modules.UI
             this.clientManager = clientManager;
         }
 
+        private class ClientMontant
+        {
+            public Client Client { get; set; }
+            public double MontantTotal { get; set; }
+        }
+
         /// <summary>
         /// Affiche le menu principal de gestion des clients
         /// </summary>
@@ -358,14 +364,14 @@ namespace Projet.Modules.UI
             Console.Write("Nom du client : ");
             string nom = Console.ReadLine() ?? "";
 
-            var clients = clientManager.ObtenirTousLesClients()
+            List<Client> clients = clientManager.ObtenirTousLesClients()
                 .Where(c => c.Nom.Equals(nom, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             if (clients.Any())
             {
                 Console.WriteLine($"\n{clients.Count} client(s) trouvé(s) :");
-                foreach (var client in clients)
+                foreach (Client client in clients)
                 {
                     AfficherDetailsClient(client);
                     Console.WriteLine("-----------------------------------");
@@ -386,7 +392,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Liste de tous les clients");
 
-            var clients = clientManager.ObtenirTousLesClients();
+            List<Client> clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -394,7 +400,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            foreach (var client in clients)
+            foreach (Client client in clients)
             {
                 AfficherDetailsClient(client);
                 Console.WriteLine("-----------------------------------");
@@ -412,7 +418,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par ordre alphabétique");
 
-            var clients = clientManager.ObtenirTousLesClients()
+            List<Client> clients = clientManager.ObtenirTousLesClients()
                 .OrderBy(c => c.Nom)
                 .ThenBy(c => c.Prenom)
                 .ToList();
@@ -424,7 +430,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            foreach (var client in clients)
+            foreach (Client client in clients)
             {
                 AfficherDetailsClient(client);
                 Console.WriteLine("-----------------------------------");
@@ -442,7 +448,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par ville");
 
-            var clients = clientManager.ObtenirTousLesClients();
+            List<Client> clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -450,15 +456,15 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var clientsParVille = clients
+            IEnumerable<IGrouping<string, Client>> clientsParVille = clients
                 .GroupBy(c => ExtraireVille(c.Adresse))
                 .OrderBy(g => g.Key);
 
-            foreach (var groupe in clientsParVille)
+            foreach (IGrouping<string, Client> groupe in clientsParVille)
             {
                 Console.WriteLine($"\n=== VILLE : {groupe.Key} ===");
 
-                foreach (var client in groupe.OrderBy(c => c.Nom).ThenBy(c => c.Prenom))
+                foreach (Client client in groupe.OrderBy(c => c.Nom).ThenBy(c => c.Prenom))
                 {
                     AfficherDetailsClient(client);
                     Console.WriteLine("-----------------------------------");
@@ -477,7 +483,7 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Clients par montant d'achats cumulés");
 
-            var clients = clientManager.ObtenirTousLesClients();
+            List<Client> clients = clientManager.ObtenirTousLesClients();
             if (clients.Count == 0)
             {
                 Console.WriteLine("Aucun client enregistré.");
@@ -485,8 +491,8 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var clientsAvecMontant = clients
-                .Select(c => new
+            List<ClientMontant> clientsAvecMontant = clients
+                .Select(c => new ClientMontant
                 {
                     Client = c,
                     MontantTotal = c.HistoriqueCommandes.Sum(cmd => cmd.Prix)
@@ -494,7 +500,7 @@ namespace Projet.Modules.UI
                 .OrderByDescending(x => x.MontantTotal)
                 .ToList();
 
-            foreach (var item in clientsAvecMontant)
+            foreach (ClientMontant item in clientsAvecMontant)
             {
                 Console.WriteLine($"Montant total d'achats : {item.MontantTotal:C2}");
                 AfficherDetailsClient(item.Client);

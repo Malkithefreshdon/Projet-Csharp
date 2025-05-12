@@ -133,7 +133,7 @@ namespace Projet.Modules
 
             try
             {
-                var finance = new FinanceSimple();
+                FinanceSimple finance = new FinanceSimple();
                 finance.AjouterTransaction(
                     Prix,
                     "Crédit",
@@ -152,15 +152,15 @@ namespace Projet.Modules
         /// </summary>
         private void CalculerDistance()
         {
-            var grapheListe = new GrapheListe(true);
-            var grapheService = new GrapheService(grapheListe);
+            GrapheListe grapheListe = new GrapheListe(true);
+            GrapheService grapheService = new GrapheService(grapheListe);
             
             try 
             {
                 Console.WriteLine($"Calcul de la distance entre {VilleDepart.Nom} et {VilleArrivee.Nom}");
                 grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
                 
-                var toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
+                List<Ville> toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
                 if (!toutesLesVilles.Any(v => v.Nom.Equals(VilleDepart.Nom)) || 
                     !toutesLesVilles.Any(v => v.Nom.Equals(VilleArrivee.Nom)))
                 {
@@ -168,7 +168,7 @@ namespace Projet.Modules
                         $"Une des villes n'existe pas dans le graphe. Villes disponibles : {string.Join(", ", toutesLesVilles.Select(v => v.Nom))}");
                 }
 
-                var (chemin, distance) = grapheService.BellmanFord(VilleDepart, VilleArrivee);
+                (List<Ville> chemin, double distance) = grapheService.BellmanFord(VilleDepart, VilleArrivee);
                 
                 if (double.IsInfinity(distance) || distance <= 0)
                 {
@@ -237,7 +237,7 @@ namespace Projet.Modules
         {
             if (chauffeur is not Salarie) return false;
 
-            var commandes = manager.GetToutesLesCommandes();
+            List<Commande> commandes = manager.GetToutesLesCommandes();
             return !commandes.Any(c => 
                 c.Chauffeur?.NumeroSecuriteSociale == chauffeur.NumeroSecuriteSociale && 
                 c.DateLivraison.Date == dateLivraison.Date);

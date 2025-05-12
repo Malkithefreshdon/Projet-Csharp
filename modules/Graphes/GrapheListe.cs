@@ -75,7 +75,7 @@ namespace Projet.Modules
         public override IEnumerable<(Ville voisin, double poids)> ObtenirVoisins(Ville v)
         {
             if (v == null) throw new ArgumentNullException(nameof(v));
-            if (adjacence.TryGetValue(v, out var voisins))
+            if (adjacence.TryGetValue(v, out List<(Ville voisin, double poids)> voisins))
             {
                 return voisins;
             }
@@ -112,9 +112,9 @@ namespace Projet.Modules
         {
             if (origine == null || destination == null) return double.PositiveInfinity;
 
-            if (adjacence.TryGetValue(origine, out var voisins))
+            if (adjacence.TryGetValue(origine, out List<(Ville voisin, double poids)> voisins))
             {
-                var lien = voisins.FirstOrDefault(l => l.voisin.Equals(destination));
+                (Ville voisin, double poids) lien = voisins.FirstOrDefault(l => l.voisin.Equals(destination));
                 if (lien.voisin != null)
                 {
                     return lien.poids;

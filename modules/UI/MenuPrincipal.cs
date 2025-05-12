@@ -48,7 +48,7 @@ namespace Projet.Modules
                 Console.WriteLine("0. Quitter");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":

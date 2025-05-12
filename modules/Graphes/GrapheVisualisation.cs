@@ -19,7 +19,7 @@ namespace Projet.Modules
         /// <summary>
         /// Initialise une nouvelle instance de la classe GrapheVisualisation.
         /// </summary>
-        /// <param name="graphe">Le graphe à visualiser.</param>
+        /// <param name="graphe">Le graphe Ã  visualiser.</param>
         /// <param name="largeur">La largeur de l'image en pixels.</param>
         /// <param name="hauteur">La hauteur de l'image en pixels.</param>
         public GrapheVisualisation(Graphe graphe, int largeur = 1000, int hauteur = 1000)
@@ -32,7 +32,7 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Génère les positions des villes sur le canvas.
+        /// GÃ©nÃ¨re les positions des villes sur le canvas.
         /// </summary>
         private void GenererPositions()
         {
@@ -43,17 +43,17 @@ namespace Projet.Modules
             {
                 if (positionsPredefinies.TryGetValue(ville.Nom, out SKPoint position))
                 {
-                    // Utiliser les positions prédéfinies
+                    // Utiliser les positions prÃ©dÃ©finies
                     this.positions[ville] = new SKPoint(position.X, position.Y);
                 }
                 else
                 {
-                    Console.WriteLine($"Position non définie pour la ville : {ville.Nom}. Une position aléatoire sera utilisée.");
+                    Console.WriteLine($"Position non dÃ©finie pour la ville : {ville.Nom}. Une position alÃ©atoire sera utilisÃ©e.");
                     this.positions[ville] = new SKPoint(new Random().Next(this.largeur), new Random().Next(this.hauteur));
                 }
             }
 
-            // Normaliser les positions pour les adapter à la taille du canvas
+            // Normaliser les positions pour les adapter Ã  la taille du canvas
             NormaliserPositions();
             AjouterEspacementMinimum(50); // Espacement minimum de 50 pixels
         }
@@ -62,7 +62,7 @@ namespace Projet.Modules
         /// Charge les positions des villes depuis un fichier Excel.
         /// </summary>
         /// <param name="cheminFichier">Le chemin du fichier Excel.</param>
-        /// <returns>Un dictionnaire associant les noms de villes à leurs positions.</returns>
+        /// <returns>Un dictionnaire associant les noms de villes Ã  leurs positions.</returns>
         private Dictionary<string, SKPoint> ChargerPositionsDepuisXlsx(string cheminFichier)
         {
             Dictionary<string, SKPoint> positions = new Dictionary<string, SKPoint>();
@@ -70,7 +70,7 @@ namespace Projet.Modules
             FileInfo fichierInfo = new FileInfo(cheminFichier);
             if (!fichierInfo.Exists)
             {
-                Console.WriteLine($"Erreur : Le fichier Excel '{cheminFichier}' n'a pas été trouvé.");
+                Console.WriteLine($"Erreur : Le fichier Excel '{cheminFichier}' n'a pas Ã©tÃ© trouvÃ©.");
                 return positions;
             }
 
@@ -122,14 +122,14 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Convertit des coordonnées géographiques en position sur le canvas.
+        /// Convertit des coordonnÃ©es gÃ©ographiques en position sur le canvas.
         /// </summary>
         /// <param name="latitude">La latitude.</param>
         /// <param name="longitude">La longitude.</param>
         /// <returns>La position sur le canvas.</returns>
         private SKPoint ConvertirCoordonneesEnPosition(double latitude, double longitude)
         {
-            // Convertir les coordonnées géographiques en positions dans le canvas
+            // Convertir les coordonnÃ©es gÃ©ographiques en positions dans le canvas
             float x = (float)((longitude + 180) / 360 * this.largeur); // Normalisation longitude
             float y = (float)((90 - latitude) / 180 * this.hauteur);   // Normalisation latitude
             return new SKPoint(x, y);
@@ -138,7 +138,7 @@ namespace Projet.Modules
         /// <summary>
         /// Dessine le graphe et l'enregistre dans un fichier.
         /// </summary>
-        /// <param name="cheminFichier">Le chemin du fichier où enregistrer l'image.</param>
+        /// <param name="cheminFichier">Le chemin du fichier oÃ¹ enregistrer l'image.</param>
         public void DrawGraphe(string cheminFichier)
         {
             using (SKBitmap bitmap = new SKBitmap(this.largeur, this.hauteur))
@@ -178,7 +178,7 @@ namespace Projet.Modules
         /// Dessine un chemin sur le graphe et l'enregistre dans un fichier.
         /// </summary>
         /// <param name="chemin">La liste des villes formant le chemin.</param>
-        /// <param name="cheminFichier">Le chemin du fichier où enregistrer l'image.</param>
+        /// <param name="cheminFichier">Le chemin du fichier oÃ¹ enregistrer l'image.</param>
         /// <param name="couleur">La couleur du chemin.</param>
         public void DrawPath(List<Ville> chemin, string cheminFichier, SKColor couleur)
         {
@@ -224,7 +224,7 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Normalise les positions des villes pour les adapter à la taille du canvas.
+        /// Normalise les positions des villes pour les adapter Ã  la taille du canvas.
         /// </summary>
         private void NormaliserPositions()
         {
@@ -236,10 +236,10 @@ namespace Projet.Modules
             float minY = this.positions.Values.Min(p => p.Y);
             float maxY = this.positions.Values.Max(p => p.Y);
 
-            // Calculer les facteurs d'échelle
+            // Calculer les facteurs d'Ã©chelle
             float scaleX = this.largeur / (maxX - minX);
             float scaleY = this.hauteur / (maxY - minY);
-            float scale = Math.Min(scaleX, scaleY) * 0.9f; // Réduction pour ajouter des marges
+            float scale = Math.Min(scaleX, scaleY) * 0.9f; // RÃ©duction pour ajouter des marges
 
             // Normaliser les positions
             foreach (Ville ville in this.positions.Keys.ToList())
@@ -252,9 +252,9 @@ namespace Projet.Modules
         }
 
         /// <summary>
-        /// Ajoute un espacement minimum entre les villes pour éviter les superpositions.
+        /// Ajoute un espacement minimum entre les villes pour Ã©viter les superpositions.
         /// </summary>
-        /// <param name="espacement">L'espacement minimum souhaité entre les villes.</param>
+        /// <param name="espacement">L'espacement minimum souhaitÃ© entre les villes.</param>
         private void AjouterEspacementMinimum(float espacement)
         {
             bool positionsAjustees;

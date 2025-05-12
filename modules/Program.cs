@@ -13,15 +13,15 @@ namespace modules
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             // Initialisation des managers
-            var clientManager = new ClientManager();
-            var commandeManager = new CommandeManager();
-            var salarieManager = new SalarieManager();
+            ClientManager clientManager = new ClientManager();
+            CommandeManager commandeManager = new CommandeManager();
+            SalarieManager salarieManager = new SalarieManager();
 
             // Initialisation du service de statistiques
-            var statistiqueService = new StatistiqueService(clientManager, commandeManager, salarieManager);
+            StatistiqueService statistiqueService = new StatistiqueService(clientManager, commandeManager, salarieManager);
 
             // Initialisation de l'interface utilisateur
-            var menuPrincipal = new MenuPrincipal(clientManager, commandeManager, salarieManager, statistiqueService);
+            MenuPrincipal menuPrincipal = new MenuPrincipal(clientManager, commandeManager, salarieManager, statistiqueService);
 
             // Démarrage de l'application
             Console.WriteLine("Bienvenue dans le système de gestion TransConnect");

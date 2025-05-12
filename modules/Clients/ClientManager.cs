@@ -32,12 +32,12 @@ namespace Projet.Modules
         {
             if (File.Exists(jsonPath))
             {
-                var jsonString = File.ReadAllText(jsonPath);
-                var options = new JsonSerializerOptions
+                string jsonString = File.ReadAllText(jsonPath);
+                JsonSerializerOptions options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                var clientsData = JsonSerializer.Deserialize<ClientsData>(jsonString, options);
+                ClientsData? clientsData = JsonSerializer.Deserialize<ClientsData>(jsonString, options);
                 clients.Clear();
                 if (clientsData?.Clients != null)
                 {
@@ -56,12 +56,12 @@ namespace Projet.Modules
         /// </summary>
         public void SauvegarderClients()
         {
-            var clientsData = new ClientsData { Clients = clients };
-            var options = new JsonSerializerOptions
+            ClientsData clientsData = new ClientsData { Clients = clients };
+            JsonSerializerOptions options = new JsonSerializerOptions
             {
                 WriteIndented = true
             };
-            var jsonString = JsonSerializer.Serialize(clientsData, options);
+            string jsonString = JsonSerializer.Serialize(clientsData, options);
             File.WriteAllText(jsonPath, jsonString);
         }
 
@@ -82,7 +82,7 @@ namespace Projet.Modules
             if (clients.Any(c => c.NumeroSS == numeroSS))
                 throw new ArgumentException("Un client avec ce numéro de sécurité sociale existe déjà");
 
-            var client = new Client(numeroSS, nom, prenom, dateNaissance, adresse);
+            Client client = new Client(numeroSS, nom, prenom, dateNaissance, adresse);
             clients.Add(client);
             SauvegarderClients();
         }
@@ -94,7 +94,7 @@ namespace Projet.Modules
         /// <returns>True si le client a été supprimé, False sinon.</returns>
         public bool SupprimerClient(string numeroSS)
         {
-            var client = clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
+            Client? client = clients.FirstOrDefault(c => c.NumeroSS == numeroSS);
             if (client != null)
             {
                 clients.Remove(client);
@@ -145,7 +145,7 @@ namespace Projet.Modules
         /// <exception cref="ArgumentException">Levée si le client n'est pas trouvé.</exception>
         public void MettreAJourClient(string numeroSS, string nom, string adresse, string email, string telephone)
         {
-            var client = RechercherClient(numeroSS);
+            Client? client = RechercherClient(numeroSS);
             if (client != null)
             {
                 client.Nom = nom;
@@ -168,7 +168,7 @@ namespace Projet.Modules
         /// <exception cref="ArgumentException">Levée si le client n'est pas trouvé.</exception>
         public void AssocierCommande(string numeroSS, Commande commande)
         {
-            var client = RechercherClient(numeroSS);
+            Client? client = RechercherClient(numeroSS);
             if (client != null)
             {
                 client.AjouterCommande(commande);

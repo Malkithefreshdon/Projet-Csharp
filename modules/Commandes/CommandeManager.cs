@@ -74,7 +74,7 @@ namespace Projet.Modules
         /// <returns>True si la commande a été supprimée, False si elle n'a pas été trouvée.</returns>
         public bool SupprimerCommande(int id)
         {
-            var commandeASupprimer = TrouverCommandeParId(id);
+            Commande? commandeASupprimer = TrouverCommandeParId(id);
             if (commandeASupprimer != null)
             {
                 commandes.Remove(commandeASupprimer);
@@ -101,7 +101,7 @@ namespace Projet.Modules
             if (nouvelleCommandeData == null)
                 throw new ArgumentNullException(nameof(nouvelleCommandeData), "Les nouvelles données de commande ne peuvent pas être null.");
 
-            var commandeAModifier = TrouverCommandeParId(id);
+            Commande? commandeAModifier = TrouverCommandeParId(id);
             if (commandeAModifier != null)
             {
                 // Vérifier la disponibilité du chauffeur si changé
@@ -163,7 +163,7 @@ namespace Projet.Modules
             }
             else
             {
-                foreach (var commande in commandes)
+                foreach (Commande commande in commandes)
                 {
                     Console.WriteLine(commande);
                     Console.WriteLine("-----------------------------------");
@@ -184,7 +184,7 @@ namespace Projet.Modules
                 return new List<Commande>();
             }
 
-            var commandesClient = commandes
+            List<Commande> commandesClient = commandes
                 .Where(c => c.Client != null && c.Client.Nom.Equals(nomClient, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -209,7 +209,7 @@ namespace Projet.Modules
                 return new List<Commande>();
             }
 
-            var commandesVehicule = commandes
+            List<Commande> commandesVehicule = commandes
                 .Where(c => c.Vehicule != null && c.Vehicule.Immatriculation.Equals(immatriculation, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -228,7 +228,7 @@ namespace Projet.Modules
         /// <returns>Une liste des commandes trouvées.</returns>
         public List<Commande> RechercherCommandesParDateLivraison(DateTime dateLivraison)
         {
-            var commandesDate = commandes
+            List<Commande> commandesDate = commandes
                 .Where(c => c.DateLivraison.Date == dateLivraison.Date)
                 .ToList();
 
@@ -249,7 +249,7 @@ namespace Projet.Modules
             string fichier = cheminFichier ?? jsonPath;
             try
             {
-                var options = new JsonSerializerOptions
+                JsonSerializerOptions options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     PropertyNameCaseInsensitive = true,
@@ -281,7 +281,7 @@ namespace Projet.Modules
                 try
                 {
                     string jsonString = File.ReadAllText(fichier);
-                    var options = new JsonSerializerOptions
+                    JsonSerializerOptions options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true,
                         Converters = 
@@ -290,7 +290,7 @@ namespace Projet.Modules
                         }
                     };
 
-                    var commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString, options);
+                    List<Commande>? commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString, options);
 
                     if (commandesChargees != null)
                     {

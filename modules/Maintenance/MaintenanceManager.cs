@@ -24,7 +24,7 @@ namespace Projet.Modules
         {
             if (File.Exists(_maintenanceJsonPath))
             {
-                var jsonString = File.ReadAllText(_maintenanceJsonPath);
+                string jsonString = File.ReadAllText(_maintenanceJsonPath);
                 return JsonSerializer.Deserialize<List<MaintenanceRecord>>(jsonString);
             }
             return new List<MaintenanceRecord>();
@@ -32,15 +32,15 @@ namespace Projet.Modules
 
         private void SauvegarderMaintenanceRecords()
         {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var jsonString = JsonSerializer.Serialize(_maintenanceRecords, options);
+            JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(_maintenanceRecords, options);
             File.WriteAllText(_maintenanceJsonPath, jsonString);
         }
 
         public void AjouterMaintenance(MaintenanceRecord maintenance)
         {
             // Vérifier si le véhicule existe
-            var vehicules = JsonSerializer.Deserialize<VehiculesData>(
+            VehiculesData vehicules = JsonSerializer.Deserialize<VehiculesData>(
                 File.ReadAllText(_vehiculesJsonPath)
             );
 
@@ -71,7 +71,7 @@ namespace Projet.Modules
 
         public List<MaintenanceRecord> ObtenirMaintenancesAVenir(int joursAvant = 30)
         {
-            var dateLimit = DateTime.Now.AddDays(joursAvant);
+            DateTime dateLimit = DateTime.Now.AddDays(joursAvant);
             return _maintenanceRecords
                 .Where(m => m.ProchaineMaintenance.HasValue && 
                            m.ProchaineMaintenance.Value <= dateLimit)
@@ -81,7 +81,7 @@ namespace Projet.Modules
 
         public double CalculerCoutsTotaux(string immatriculation, DateTime? debut = null, DateTime? fin = null)
         {
-            var maintenances = _maintenanceRecords
+            IEnumerable<MaintenanceRecord> maintenances = _maintenanceRecords
                 .Where(m => m.Immatriculation == immatriculation &&
                            (!debut.HasValue || m.DateMaintenance >= debut) &&
                            (!fin.HasValue || m.DateMaintenance <= fin));
@@ -91,7 +91,7 @@ namespace Projet.Modules
 
         public void MettreAJourStatutMaintenance(string immatriculation, DateTime dateMaintenance, string nouveauStatut)
         {
-            var maintenance = _maintenanceRecords
+            MaintenanceRecord? maintenance = _maintenanceRecords
                 .FirstOrDefault(m => m.Immatriculation == immatriculation && 
                                    m.DateMaintenance == dateMaintenance);
 

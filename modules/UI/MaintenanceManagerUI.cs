@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Projet.Modules;
 
@@ -31,7 +32,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
-                var choix = Console.ReadLine();
+                string choix = Console.ReadLine();
                 switch (choix)
                 {
                     case "1":
@@ -69,9 +70,9 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Ajout d'une maintenance");
 
             Console.Write("Immatriculation du véhicule : ");
-            var immatriculation = Console.ReadLine();
+            string immatriculation = Console.ReadLine();
 
-            var vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
+            Vehicule vehicule = _vehiculeManager.ObtenirVehiculeParImmatriculation(immatriculation);
             if (vehicule == null)
             {
                 Console.WriteLine("Véhicule non trouvé.");
@@ -80,10 +81,10 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Type de maintenance (Preventive/Reparation) : ");
-            var type = Console.ReadLine();
+            string type = Console.ReadLine();
 
             Console.Write("Description : ");
-            var description = Console.ReadLine();
+            string description = Console.ReadLine();
 
             Console.Write("Coût : ");
             if (!double.TryParse(Console.ReadLine(), out double cout))
@@ -94,7 +95,7 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Date prochaine maintenance (JJ/MM/AAAA ou vide) : ");
-            var prochaineDateStr = Console.ReadLine();
+            string prochaineDateStr = Console.ReadLine();
             DateTime? prochaineDate = null;
             if (!string.IsNullOrEmpty(prochaineDateStr))
             {
@@ -105,9 +106,9 @@ namespace Projet.Modules.UI
             }
 
             Console.Write("Technicien : ");
-            var technicien = Console.ReadLine();
+            string technicien = Console.ReadLine();
 
-            var maintenance = new MaintenanceRecord
+            MaintenanceRecord maintenance = new MaintenanceRecord
             {
                 Immatriculation = immatriculation,
                 DateMaintenance = DateTime.Now,
@@ -139,12 +140,12 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Historique des maintenances");
 
             Console.Write("Immatriculation du véhicule : ");
-            var immatriculation = Console.ReadLine();
+            string immatriculation = Console.ReadLine();
 
-            var historique = _maintenanceManager.ObtenirHistoriqueMaintenance(immatriculation);
+            List<MaintenanceRecord> historique = _maintenanceManager.ObtenirHistoriqueMaintenance(immatriculation);
             if (historique.Any())
             {
-                foreach (var maintenance in historique)
+                foreach (MaintenanceRecord maintenance in historique)
                 {
                     AfficherDetailsMaintenance(maintenance);
                     Console.WriteLine("-----------------------------------");
@@ -164,10 +165,10 @@ namespace Projet.Modules.UI
             Console.Clear();
             ConsoleHelper.AfficherTitre("Maintenances planifiées");
 
-            var maintenances = _maintenanceManager.ObtenirMaintenancesPlanifiees();
+            List<MaintenanceRecord> maintenances = _maintenanceManager.ObtenirMaintenancesPlanifiees();
             if (maintenances.Any())
             {
-                foreach (var maintenance in maintenances)
+                foreach (MaintenanceRecord maintenance in maintenances)
                 {
                     AfficherDetailsMaintenance(maintenance);
                     Console.WriteLine("-----------------------------------");
@@ -188,13 +189,13 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Maintenances à venir");
 
             Console.Write("Nombre de jours à prévoir (défaut: 30) : ");
-            var joursStr = Console.ReadLine();
+            string joursStr = Console.ReadLine();
             int jours = string.IsNullOrEmpty(joursStr) ? 30 : int.Parse(joursStr);
 
-            var maintenances = _maintenanceManager.ObtenirMaintenancesAVenir(jours);
+            List<MaintenanceRecord> maintenances = _maintenanceManager.ObtenirMaintenancesAVenir(jours);
             if (maintenances.Any())
             {
-                foreach (var maintenance in maintenances)
+                foreach (MaintenanceRecord maintenance in maintenances)
                 {
                     AfficherDetailsMaintenance(maintenance);
                     Console.WriteLine("-----------------------------------");
@@ -215,13 +216,13 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Calcul des coûts de maintenance");
 
             Console.Write("Immatriculation du véhicule : ");
-            var immatriculation = Console.ReadLine();
+            string immatriculation = Console.ReadLine();
 
             Console.WriteLine("\n1. Coûts totaux");
             Console.WriteLine("2. Coûts sur une période");
             Console.Write("\nVotre choix : ");
 
-            var choix = Console.ReadLine();
+            string choix = Console.ReadLine();
             DateTime? debut = null;
             DateTime? fin = null;
 
@@ -240,7 +241,7 @@ namespace Projet.Modules.UI
                 }
             }
 
-            var couts = _maintenanceManager.CalculerCoutsTotaux(immatriculation, debut, fin);
+            double couts = _maintenanceManager.CalculerCoutsTotaux(immatriculation, debut, fin);
             Console.WriteLine($"\nCoûts totaux : {couts:C2}");
 
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
@@ -253,9 +254,9 @@ namespace Projet.Modules.UI
             ConsoleHelper.AfficherTitre("Mise à jour du statut d'une maintenance");
 
             Console.Write("Immatriculation du véhicule : ");
-            var immatriculation = Console.ReadLine();
+            string immatriculation = Console.ReadLine();
 
-            var maintenances = _maintenanceManager.ObtenirHistoriqueMaintenance(immatriculation);
+            List<MaintenanceRecord> maintenances = _maintenanceManager.ObtenirHistoriqueMaintenance(immatriculation);
             if (!maintenances.Any())
             {
                 Console.WriteLine("Aucune maintenance trouvée pour ce véhicule.");
@@ -264,7 +265,7 @@ namespace Projet.Modules.UI
             }
 
             Console.WriteLine("\nMaintenances disponibles :");
-            foreach (var maintenance in maintenances)
+            foreach (MaintenanceRecord maintenance in maintenances)
             {
                 Console.WriteLine($"Date: {maintenance.DateMaintenance:dd/MM/yyyy}, Type: {maintenance.TypeMaintenance}, Statut: {maintenance.Statut}");
             }

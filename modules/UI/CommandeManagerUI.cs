@@ -239,7 +239,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = commandeManager.TrouverCommandeParId(id);
+            Commande? commande = commandeManager.TrouverCommandeParId(id);
             if (commande == null)
             {
                 Console.WriteLine("Commande non trouvée.");
@@ -317,7 +317,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = commandeManager.TrouverCommandeParId(id);
+            Commande? commande = commandeManager.TrouverCommandeParId(id);
             if (commande == null)
             {
                 Console.WriteLine("Commande non trouvée.");
@@ -359,7 +359,7 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commande = commandeManager.TrouverCommandeParId(id);
+            Commande? commande = commandeManager.TrouverCommandeParId(id);
             if (commande != null)
             {
                 Console.WriteLine("\nCommande trouvée :");
@@ -383,11 +383,11 @@ namespace Projet.Modules.UI
             Console.Write("Nom du client : ");
             string nomClient = Console.ReadLine() ?? "";
 
-            var commandes = commandeManager.RechercherCommandesParClient(nomClient);
+            List<Commande> commandes = commandeManager.RechercherCommandesParClient(nomClient);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
-                foreach (var commande in commandes)
+                foreach (Commande commande in commandes)
                 {
                     Console.WriteLine(commande);
                     Console.WriteLine("-----------------------------------");
@@ -407,11 +407,11 @@ namespace Projet.Modules.UI
             Console.Write("Immatriculation du véhicule : ");
             string immatriculation = Console.ReadLine() ?? "";
 
-            var commandes = commandeManager.RechercherCommandesParVehicule(immatriculation);
+            List<Commande> commandes = commandeManager.RechercherCommandesParVehicule(immatriculation);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
-                foreach (var commande in commandes)
+                foreach (Commande commande in commandes)
                 {
                     Console.WriteLine(commande);
                     Console.WriteLine("-----------------------------------");
@@ -436,11 +436,11 @@ namespace Projet.Modules.UI
                 return;
             }
 
-            var commandes = commandeManager.RechercherCommandesParDateLivraison(dateLivraison);
+            List<Commande> commandes = commandeManager.RechercherCommandesParDateLivraison(dateLivraison);
             if (commandes.Any())
             {
                 Console.WriteLine($"\n{commandes.Count} commande(s) trouvée(s) :");
-                foreach (var commande in commandes)
+                foreach (Commande commande in commandes)
                 {
                     Console.WriteLine(commande);
                     Console.WriteLine("-----------------------------------");

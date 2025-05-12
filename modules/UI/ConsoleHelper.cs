@@ -14,7 +14,7 @@ namespace Projet.Modules
 
         public static void AfficherMessage(string message, ConsoleColor couleur = ConsoleColor.White)
         {
-            var couleurOriginale = Console.ForegroundColor;
+            ConsoleColor couleurOriginale = Console.ForegroundColor;
             Console.ForegroundColor = couleur;
             Console.WriteLine(message);
             Console.ForegroundColor = couleurOriginale;
@@ -37,12 +37,11 @@ namespace Projet.Modules
 
         public static void AfficherTableau(string[] enTetes, string[][] donnees)
         {
-            // Calculer les largeurs de colonnes
             int[] largeurs = new int[enTetes.Length];
             for (int i = 0; i < enTetes.Length; i++)
             {
                 largeurs[i] = enTetes[i].Length;
-                foreach (var ligne in donnees)
+                foreach (string[] ligne in donnees)
                 {
                     if (i < ligne.Length && ligne[i].Length > largeurs[i])
                     {
@@ -51,7 +50,6 @@ namespace Projet.Modules
                 }
             }
 
-            // Afficher l'en-tête
             Console.Write("|");
             for (int i = 0; i < enTetes.Length; i++)
             {
@@ -59,7 +57,6 @@ namespace Projet.Modules
             }
             Console.WriteLine();
 
-            // Afficher la ligne de séparation
             Console.Write("+");
             for (int i = 0; i < enTetes.Length; i++)
             {
@@ -67,8 +64,7 @@ namespace Projet.Modules
             }
             Console.WriteLine();
 
-            // Afficher les données
-            foreach (var ligne in donnees)
+            foreach (string[] ligne in donnees)
             {
                 Console.Write("|");
                 for (int i = 0; i < enTetes.Length; i++)
