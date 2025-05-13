@@ -3,6 +3,7 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace Projet.Modules
 {
@@ -36,8 +37,10 @@ namespace Projet.Modules
         /// </summary>
         private void GenererPositions()
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string cheminFichier = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "distances_villes_france_2.xlsx");
             List<Ville> villes = this.graphe.GetToutesLesVilles().ToList();
-            Dictionary<string, SKPoint> positionsPredefinies = ChargerPositionsDepuisXlsx("Ressources/distances_villes_france_2.xlsx");
+            Dictionary<string, SKPoint> positionsPredefinies = ChargerPositionsDepuisXlsx(cheminFichier);
 
             foreach (Ville ville in villes)
             {

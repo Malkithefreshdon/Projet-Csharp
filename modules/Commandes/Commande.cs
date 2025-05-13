@@ -158,7 +158,9 @@ namespace Projet.Modules
             try 
             {
                 Console.WriteLine($"Calcul de la distance entre {VilleDepart.Nom} et {VilleArrivee.Nom}");
-                grapheService.ChargerGrapheDepuisXlsx("Ressources/distances_villes_france.xlsx");
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string cheminFichier = Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "distances_villes_france.xlsx");
+                grapheService.ChargerGrapheDepuisXlsx(cheminFichier);
                 
                 List<Ville> toutesLesVilles = grapheListe.GetToutesLesVilles().ToList();
                 if (!toutesLesVilles.Any(v => v.Nom.Equals(VilleDepart.Nom)) || 
