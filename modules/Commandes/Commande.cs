@@ -13,14 +13,14 @@ namespace Projet.Modules
     /// </summary>
     public class Commande
     {
-        private const double TAUX_BASE_KILOMETRIQUE = 1.5;
-        private const double COEFFICIENT_SALAIRE = 0.001;
+         const double TAUX_BASE_KILOMETRIQUE = 1.5;
+         const double COEFFICIENT_SALAIRE = 0.001;
 
         /// <summary>
         /// Obtient l'identifiant unique de la commande.
         /// </summary>
         [JsonInclude]
-        public int Id { get; private set; }
+        public int Id { get;  set; }
 
         /// <summary>
         /// Obtient ou définit le client associé à la commande.
@@ -56,7 +56,7 @@ namespace Projet.Modules
         /// Obtient la date de création de la commande.
         /// </summary>
         [JsonInclude]
-        public DateTime DateCommande { get; private set; }
+        public DateTime DateCommande { get;  set; }
 
         /// <summary>
         /// Obtient ou définit la date de livraison prévue.
@@ -68,13 +68,13 @@ namespace Projet.Modules
         /// Obtient le prix total de la commande.
         /// </summary>
         [JsonInclude]
-        public double Prix { get; private set; }
+        public double Prix { get; set; }
 
         /// <summary>
         /// Obtient la distance calculée pour le trajet.
         /// </summary>
         [JsonInclude]
-        public double DistanceCalculee { get; private set; }
+        public double DistanceCalculee { get; set; }
 
         /// <summary>
         /// Constructeur par défaut pour la désérialisation JSON.

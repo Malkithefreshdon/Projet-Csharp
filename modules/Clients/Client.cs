@@ -11,7 +11,7 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient le numéro de sécurité sociale du client.
         /// </summary>
-        public string NumeroSS { get; private set; }
+        public string NumeroSS { get;  set; }
 
         /// <summary>
         /// Obtient ou définit le nom du client.
@@ -21,12 +21,12 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient le prénom du client.
         /// </summary>
-        public string Prenom { get; private set; }
+        public string Prenom { get;  set; }
 
         /// <summary>
         /// Obtient la date de naissance du client.
         /// </summary>
-        public DateTime DateNaissance { get; private set; }
+        public DateTime DateNaissance { get;  set; }
 
         /// <summary>
         /// Obtient ou définit l'adresse du client.
@@ -46,7 +46,7 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient la liste des commandes effectuées par le client.
         /// </summary>
-        public List<Commande> HistoriqueCommandes { get; private set; }
+        public List<Commande> HistoriqueCommandes { get;  set; }
 
         /// <summary>
         /// Initialise une nouvelle instance de la classe Client.

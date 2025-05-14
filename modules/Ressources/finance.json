@@ -1,5 +1,5 @@
 {
-  "Solde": -980000,
+  "Solde": -891628.88,
   "Transactions": [
     {
       "Date": "2025-04-01T20:32:05.040532+02:00",
@@ -14,6 +14,55 @@
       "Type": "D\u00E9bit",
       "Description": "Paiement des salaires - 05/2025",
       "Categorie": "Salaires"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4250025+02:00",
+      "Montant": 11176.56,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #1 - Nantes \u00E0 Paris",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4321764+02:00",
+      "Montant": 19533.36,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #2 - Paris \u00E0 Toulouse",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4327882+02:00",
+      "Montant": 11532.24,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #3 - Paris \u00E0 Nantes",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4441272+02:00",
+      "Montant": 11532.24,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #4 - Paris \u00E0 Nantes",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4552036+02:00",
+      "Montant": 11532.24,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #5 - Paris \u00E0 Nantes",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4717959+02:00",
+      "Montant": 11532.24,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #6 - Paris \u00E0 Nantes",
+      "Categorie": "Transport"
+    },
+    {
+      "Date": "2025-05-14T16:11:33.4869561+02:00",
+      "Montant": 11532.24,
+      "Type": "Cr\u00E9dit",
+      "Description": "Commande #7 - Paris \u00E0 Nantes",
+      "Categorie": "Transport"
     }
   ]
 }
