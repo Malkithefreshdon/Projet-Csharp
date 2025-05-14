@@ -46,8 +46,6 @@ namespace Projet.Modules.UI
                 Console.WriteLine("7. Afficher les clients par ville");
                 Console.WriteLine("8. Afficher les clients par montant d'achats cumulés");
                 Console.WriteLine("9. Importer des clients depuis un fichier CSV");
-                Console.WriteLine("10. Sauvegarder les modifications");
-                Console.WriteLine("11. Recharger les données");
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
@@ -80,30 +78,6 @@ namespace Projet.Modules.UI
                         break;
                     case "9":
                         ImporterClientsDepuisCSV();
-                        break;
-                    case "10":
-                        try
-                        {
-                            clientManager.SauvegarderClients();
-                            Console.WriteLine("Les modifications ont été sauvegardées avec succès.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Erreur lors de la sauvegarde : {ex.Message}");
-                        }
-                        Console.ReadKey();
-                        break;
-                    case "11":
-                        try
-                        {
-                            clientManager.ChargerClients();
-                            Console.WriteLine("Les données ont été rechargées avec succès.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Erreur lors du rechargement : {ex.Message}");
-                        }
-                        Console.ReadKey();
                         break;
                     case "0":
                         continuer = false;
