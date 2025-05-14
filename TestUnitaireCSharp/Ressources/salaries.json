@@ -1,0 +1,14 @@
+[
+  {
+    "NumeroSecuriteSociale": "789",
+    "Nom": "Brown",
+    "Prenom": "Charlie",
+    "Poste": "Chef d\u0027\u00E9quipe",
+    "DateNaissance": "0001-01-01T00:00:00",
+    "DateEntreeSociete": "0001-01-01T00:00:00",
+    "AdressePostale": "",
+    "AdresseMail": "",
+    "Telephone": "",
+    "Salaire": 0
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "Solde": 150500,
+  "Transactions": [
+    {
+      "Date": "2025-04-14T18:30:06.6669174+02:00",
+      "Montant": 150000,
+      "Type": "Cr\u00E9dit",
+      "Description": "Capital initial",
+      "Categorie": "Capital"
+    },
+    {
+      "Date": "2025-05-14T18:30:06.7349983+02:00",
+      "Montant": 1000,
+      "Type": "Cr\u00E9dit",
+      "Description": "Test credit",
+      "Categorie": "Divers"
+    },
+    {
+      "Date": "2025-05-14T18:30:06.7530352+02:00",
+      "Montant": 500,
+      "Type": "D\u00E9bit",
+      "Description": "Test debit",
+      "Categorie": "Divers"
+    }
+  ]
+}
