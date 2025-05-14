@@ -68,7 +68,6 @@ namespace Projet.Modules.UI
                 Console.WriteLine("2. Rechercher le plus court chemin");
                 Console.WriteLine("3. Vérifier la connexité");
                 Console.WriteLine("4. Vérifier les cycles");
-                Console.WriteLine("5. Recharger les données");
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
@@ -86,13 +85,6 @@ namespace Projet.Modules.UI
                         break;
                     case "4":
                         VerifierCycles();
-                        break;
-                    case "5":
-                        this.donneeesChargees = false;
-                        ChargerDonneesGraphe();
-                        Console.WriteLine("Données rechargées.");
-                        Console.WriteLine("Appuyez sur une touche pour continuer...");
-                        Console.ReadKey();
                         break;
                     case "0":
                         continuer = false;
