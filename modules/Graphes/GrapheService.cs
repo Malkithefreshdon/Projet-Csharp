@@ -42,7 +42,6 @@ namespace Projet.Modules
             {
                 using (ExcelPackage package = new ExcelPackage(fichierInfo))
                 {
-                    // On suppose que les données sont dans la première feuille de calcul
                     ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault();
                     if (worksheet == null)
                     {
@@ -50,7 +49,6 @@ namespace Projet.Modules
                         return;
                     }
 
-                    // Vérifier si la feuille contient des données
                     if (worksheet.Dimension == null)
                     {
                         Console.WriteLine($"Avertissement: La feuille de calcul '{worksheet.Name}' dans '{cheminFichier}' est vide.");
@@ -66,7 +64,6 @@ namespace Projet.Modules
                         string nomVilleB = worksheet.Cells[row, 2].Text?.Trim();
                         object valeurDistanceObj = worksheet.Cells[row, 3].Value;
 
-                        // Ignorer les lignes où les noms de ville sont manquants
                         if (string.IsNullOrWhiteSpace(nomVilleA) && string.IsNullOrWhiteSpace(nomVilleB))
                         {
                             continue;
@@ -588,12 +585,6 @@ namespace Projet.Modules
         /// <param name="autreGraphe">L'autre graphe à comparer.</param>
         public void ComparerImplementationsDijkstra(Ville depart, Ville arrivee, Graphe autreGraphe)
         {
-            if (autreGraphe == null)
-            {
-                Console.WriteLine("Impossible de comparer: le second graphe est null.");
-                return;
-            }
-
             Console.WriteLine($"\n--- Comparaison d'exécution Dijkstra ({depart} -> {arrivee}) ---");
 
             Stopwatch chrono1 = Stopwatch.StartNew();
@@ -623,7 +614,7 @@ namespace Projet.Modules
             if (chemin != null && chemin.Any())
             {
                 Console.WriteLine($"  Chemin trouvé ({chemin.Count} villes): {string.Join(" -> ", chemin.Select(v => v.Nom))}");
-                Console.WriteLine($"  Distance totale: {distance:F2} km");
+                Console.WriteLine($"  Distance totale: {distance} km");
             }
             else
             {
