@@ -12,10 +12,6 @@ namespace Projet.Modules
         /// </summary>
         public string Nom { get; private set; }
 
-        // Optionnel: Coordonnées géographiques
-        // public double Latitude { get; set; }
-        // public double Longitude { get; set; }
-
         /// <summary>
         /// Initialise une nouvelle instance de la classe Ville.
         /// </summary>
