@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "�
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUnitaireCSharp", "TestUnitaireCSharp\TestUnitaireCSharp.csproj", "{2126769C-355B-48F0-A905-D7803BC268D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1691BB8-B176-45EC-9002-2AB4A17B418B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2126769C-355B-48F0-A905-D7803BC268D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2126769C-355B-48F0-A905-D7803BC268D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2126769C-355B-48F0-A905-D7803BC268D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2126769C-355B-48F0-A905-D7803BC268D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
