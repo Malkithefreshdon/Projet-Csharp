@@ -14,21 +14,21 @@ namespace Projet.Modules
     {
         private readonly string jsonFilePath;
         private double solde;
-        private List<TransactionSimple> transactions;
+        private List<Transaction> transactions;
         private readonly CommandeManager commandeManager;
         private readonly SalarieManager salarieManager;
 
         /// <summary>
         /// Initialise une nouvelle instance du module de gestion financière
         /// </summary>
-        /// <param name="jsonFilePath">Chemin du fichier JSON pour stocker les données (optionnel)</param>
-        /// <param name="commandeManager">Gestionnaire de commandes (optionnel)</param>
-        /// <param name="salarieManager">Gestionnaire de salariés (optionnel)</param>
+        /// <param name="jsonFilePath">Chemin du fichier JSON pour stocker les données</param>
+        /// <param name="commandeManager">Gestionnaire de commandes</param>
+        /// <param name="salarieManager">Gestionnaire de salariés</param>
         public FinanceSimple(string jsonFilePath = null, CommandeManager commandeManager = null, SalarieManager salarieManager = null)
         {
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             this.jsonFilePath = jsonFilePath ?? Path.Combine(baseDirectory, "..", "..", "..", "Ressources", "finance.json");
-            this.transactions = new List<TransactionSimple>();
+            this.transactions = new List<Transaction>();
             this.commandeManager = commandeManager ?? new CommandeManager();
             this.salarieManager = salarieManager ?? new SalarieManager();
 
@@ -47,9 +47,9 @@ namespace Projet.Modules
                 if (!File.Exists(jsonFilePath))
                 {
                     solde = 150000;
-                    transactions = new List<TransactionSimple>
+                    transactions = new List<Transaction>
                     {
-                        new TransactionSimple
+                        new Transaction
                         {
                             Date = DateTime.Now.AddDays(-30),
                             Montant = 150000,
@@ -69,7 +69,7 @@ namespace Projet.Modules
                 if (donnees != null)
                 {
                     solde = donnees.Solde;
-                    transactions = donnees.Transactions ?? new List<TransactionSimple>();
+                    transactions = donnees.Transactions ?? new List<Transaction>();
                 }
             }
             catch (Exception ex)
@@ -77,7 +77,7 @@ namespace Projet.Modules
                 Console.WriteLine($"Erreur lors du chargement des données financières: {ex.Message}");
                 
                 solde = 0;
-                transactions = new List<TransactionSimple>();
+                transactions = new List<Transaction>();
             }
         }
 
@@ -114,12 +114,12 @@ namespace Projet.Modules
         /// Ajoute une nouvelle transaction financière
         /// </summary>
         /// <param name="montant">Montant de la transaction</param>
-        /// <param name="type">Type de transaction (Crédit ou Débit)</param>
+        /// <param name="type">Type de transaction (crédit ou débit)</param>
         /// <param name="description">Description de la transaction</param>
-        /// <param name="categorie">Catégorie de la transaction (optionnel)</param>
+        /// <param name="categorie">Catégorie de la transaction</param>
         public void AjouterTransaction(double montant, string type, string description, string categorie = "Divers")
         {
-            TransactionSimple transaction = new TransactionSimple
+            Transaction transaction = new Transaction
             {
                 Date = DateTime.Now,
                 Montant = Math.Abs(montant),
@@ -154,20 +154,20 @@ namespace Projet.Modules
 
             DateTime debutMois = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            double revenusMonth = transactions
+            double revenusMois = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "crédit" || t.Type.ToLower() == "credit"))
                 .Sum(t => t.Montant);
 
-            double depensesMonth = transactions
+            double depensesMois = transactions
                 .Where(t => t.Date >= debutMois && (t.Type.ToLower() == "débit" || t.Type.ToLower() == "debit"))
                 .Sum(t => t.Montant);
 
-            Console.WriteLine($"Revenus du mois: {revenusMonth:N2} €");
-            Console.WriteLine($"Dépenses du mois: {depensesMonth:N2} €");
-            Console.WriteLine($"Bilan du mois: {(revenusMonth - depensesMonth):N2} €");
+            Console.WriteLine($"Revenus du mois: {revenusMois:N2} €");
+            Console.WriteLine($"Dépenses du mois: {depensesMois:N2} €");
+            Console.WriteLine($"Bilan du mois: {revenusMois - depensesMois:N2} €");
 
             Console.WriteLine("\nDernières transactions:");
-            foreach (TransactionSimple transaction in transactions.OrderByDescending(t => t.Date).Take(5))
+            foreach (Transaction transaction in transactions.OrderByDescending(t => t.Date).Take(5))
             {
                 string typeSymbole = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? "+" : "-";
                 ConsoleColor couleur = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? ConsoleColor.Green : ConsoleColor.Red;
@@ -243,7 +243,7 @@ namespace Projet.Modules
             Console.WriteLine("Date       | Type   | Montant      | Catégorie     | Description");
             Console.WriteLine("---------- | ------ | ------------ | ------------- | -----------");
 
-            foreach (TransactionSimple transaction in transactions.OrderByDescending(t => t.Date))
+            foreach (Transaction transaction in transactions.OrderByDescending(t => t.Date))
             {
                 ConsoleColor couleur = transaction.Type.ToLower() == "crédit" || transaction.Type.ToLower() == "credit" ? ConsoleColor.Green : ConsoleColor.Red;
 
@@ -373,7 +373,7 @@ namespace Projet.Modules
             Console.Clear();
             ConsoleHelper.AfficherTitre($"Rapport du {debut:dd/MM/yyyy} au {fin:dd/MM/yyyy}");
 
-            List<TransactionSimple> transactionsPeriode = transactions
+            List<Transaction> transactionsPeriode = transactions
                 .Where(t => t.Date >= debut && t.Date <= fin)
                 .ToList();
 
@@ -432,13 +432,13 @@ namespace Projet.Modules
         /// <summary>
         /// Liste des transactions
         /// </summary>
-        public List<TransactionSimple> Transactions { get; set; }
+        public List<Transaction> Transactions { get; set; }
     }
 
     /// <summary>
-    /// Représente une transaction financière simplifiée
+    /// Représente une transaction financière
     /// </summary>
-    public class TransactionSimple
+    public class Transaction
     {
         /// <summary>
         /// Date de la transaction

@@ -23,7 +23,7 @@ namespace Projet.Modules
         /// </summary>
         public enum StatutFidelite 
         { 
-            /// <summary>Niveau de base, sans avantages particuliers</summary>
+            /// <summary>Niveau de base, sans avantages</summary>
             Standard, 
             /// <summary>Premier niveau, 5% de remise</summary>
             Bronze, 
@@ -40,10 +40,10 @@ namespace Projet.Modules
         /// Le tableau est indexé par l'énumération StatutFidelite.
         /// </summary>
         private static readonly (int nbCommandes, double remise)[] niveaux = {
-            (0, 0.00),    // Standard: pas de remise
-            (5, 0.05),    // Bronze: 5% de remise (après 5 commandes)
-            (10, 0.07),   // Argent: 7% de remise (après 10 commandes)
-            (20, 0.10),   // Or: 10% de remise (après 20 commandes)
+            (0, 0.00),    // Standard
+            (5, 0.05),    // Bronze: après 5 commandes
+            (10, 0.07),   // Argent: après 10 commandes
+            (20, 0.10),   // Or: après 20 commandes
         };
 
         /// <summary>
@@ -125,7 +125,6 @@ namespace Projet.Modules
             Console.WriteLine($"Statut: {statut}");
             Console.WriteLine($"Remise: {remise:F1}%");
 
-            // Affichage de la progression vers le niveau suivant
             if (statut != StatutFidelite.Platine)
             {
                 int commandesManquantes = niveaux[statutIndex + 1].nbCommandes - nbCommandes;
