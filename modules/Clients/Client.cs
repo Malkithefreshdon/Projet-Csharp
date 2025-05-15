@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Projet.Modules
 {
@@ -46,6 +47,7 @@ namespace Projet.Modules
         /// <summary>
         /// Obtient la liste des commandes effectuées par le client.
         /// </summary>
+        [JsonIgnore]
         public List<Commande> HistoriqueCommandes { get;  set; }
 
         /// <summary>
@@ -63,6 +65,15 @@ namespace Projet.Modules
             Prenom = prenom;
             DateNaissance = dateNaissance;
             Adresse = adresse;
+            HistoriqueCommandes = new List<Commande>();
+        }
+
+        /// <summary>
+        /// Constructeur sans paramètres pour la désérialisation JSON.
+        /// </summary>
+        [JsonConstructor]
+        public Client()
+        {
             HistoriqueCommandes = new List<Commande>();
         }
 

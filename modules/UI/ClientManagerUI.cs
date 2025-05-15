@@ -19,6 +19,17 @@ namespace Projet.Modules.UI
         public ClientManagerUI(ClientManager clientManager)
         {
             this.clientManager = clientManager;
+            
+            // Synchroniser les clients avec leurs commandes
+            try
+            {
+                CommandeManager commandeManager = new CommandeManager();
+                commandeManager.SynchroniserClientsAvecCommandes(clientManager);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la synchronisation des clients et commandes : {ex.Message}");
+            }
         }
 
         private class ClientMontant

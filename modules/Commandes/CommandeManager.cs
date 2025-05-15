@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 
 #nullable enable
 
@@ -14,6 +15,16 @@ namespace Projet.Modules
     /// </summary>
     public class CommandeManager
     {
+        // Classe interne pour la désérialisation du format JSON spécifique
+        private class CommandesWrapper
+        {
+            [JsonPropertyName("$id")]
+            public string? Id { get; set; }
+            
+            [JsonPropertyName("$values")]
+            public List<Commande>? Values { get; set; }
+        }
+
         private readonly List<Commande> commandes;
         private readonly string jsonPath;
         private int prochainId;
@@ -260,7 +271,14 @@ namespace Projet.Modules
                     }
                 };
 
-                string jsonString = JsonSerializer.Serialize(commandes, options);
+                // Créer une structure correspondant au format attendu
+                var wrapper = new CommandesWrapper
+                {
+                    Id = "1",
+                    Values = commandes
+                };
+                
+                string jsonString = JsonSerializer.Serialize(wrapper, options);
                 File.WriteAllText(fichier, jsonString);
                 Console.WriteLine($"Commandes sauvegardées avec succès dans {fichier}");
             }
@@ -281,30 +299,162 @@ namespace Projet.Modules
             {
                 try
                 {
+                    // Lire tout le fichier JSON en tant que texte
                     string jsonString = File.ReadAllText(fichier);
-                    JsonSerializerOptions options = new JsonSerializerOptions
+                    
+                    // Convertir manuellement le JSON en éliminant les références circulaires
+                    using JsonDocument doc = JsonDocument.Parse(jsonString);
+                    
+                    if (doc.RootElement.TryGetProperty("$values", out JsonElement valuesArray))
                     {
-                        PropertyNameCaseInsensitive = true,
-                        Converters = 
-                        {
-                            new JsonStringEnumConverter()
-                        }
-                    };
-
-                    List<Commande>? commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString, options);
-
-                    if (commandesChargees != null)
-                    {
+                        // Traiter le tableau de commandes
                         commandes.Clear();
-                        commandes.AddRange(commandesChargees);
+                        
+                        foreach (JsonElement commandeElement in valuesArray.EnumerateArray())
+                        {
+                            try
+                            {
+                                // Récupérer l'identifiant
+                                int id = commandeElement.GetProperty("Id").GetInt32();
+                                
+                                // Récupérer le client
+                                JsonElement clientElement = commandeElement.GetProperty("Client");
+                                string numeroSS = clientElement.GetProperty("NumeroSS").GetString() ?? string.Empty;
+                                string nom = clientElement.GetProperty("Nom").GetString() ?? string.Empty;
+                                string prenom = clientElement.GetProperty("Prenom").GetString() ?? string.Empty;
+                                DateTime dateNaissance = clientElement.GetProperty("DateNaissance").GetDateTime();
+                                string adresse = clientElement.GetProperty("Adresse").GetString() ?? string.Empty;
+                                string? email = null;
+                                string? telephone = null;
+                                
+                                if (clientElement.TryGetProperty("Email", out JsonElement emailElement) && !emailElement.ValueKind.Equals(JsonValueKind.Null))
+                                    email = emailElement.GetString();
+                                
+                                if (clientElement.TryGetProperty("Telephone", out JsonElement telElement) && !telElement.ValueKind.Equals(JsonValueKind.Null))
+                                    telephone = telElement.GetString();
+                                
+                                Client client = new Client(numeroSS, nom, prenom, dateNaissance, adresse);
+                                client.Email = email;
+                                client.Telephone = telephone;
+                                
+                                // Récupérer les villes
+                                JsonElement villeDepartElement = commandeElement.GetProperty("VilleDepart");
+                                string nomVilleDepart = villeDepartElement.GetProperty("Nom").GetString() ?? string.Empty;
+                                Ville villeDepart = new Ville(nomVilleDepart);
+                                
+                                JsonElement villeArriveeElement = commandeElement.GetProperty("VilleArrivee");
+                                string nomVilleArrivee = villeArriveeElement.GetProperty("Nom").GetString() ?? string.Empty;
+                                Ville villeArrivee = new Ville(nomVilleArrivee);
+                                
+                                // Récupérer les dates
+                                DateTime dateCommande = commandeElement.GetProperty("DateCommande").GetDateTime();
+                                DateTime dateLivraison = commandeElement.GetProperty("DateLivraison").GetDateTime();
+                                
+                                // Récupérer la distance et le prix
+                                double distance = commandeElement.GetProperty("DistanceCalculee").GetDouble();
+                                double prix = commandeElement.GetProperty("Prix").GetDouble();
+                                
+                                // Chauffeur (peut être null)
+                                Salarie? chauffeur = null;
+                                if (commandeElement.TryGetProperty("Chauffeur", out JsonElement chauffeurElement) && 
+                                    !chauffeurElement.ValueKind.Equals(JsonValueKind.Null))
+                                {
+                                    string numeroSecuriteSociale = chauffeurElement.GetProperty("NumeroSecuriteSociale").GetString() ?? string.Empty;
+                                    string nomChauffeur = chauffeurElement.GetProperty("Nom").GetString() ?? string.Empty;
+                                    string prenomChauffeur = chauffeurElement.GetProperty("Prenom").GetString() ?? string.Empty;
+                                    
+                                    // Obtenir le chauffeur depuis le manager de salariés si possible
+                                    try
+                                    {
+                                        SalarieManager salarieManager = new SalarieManager();
+                                        chauffeur = salarieManager.RechercherParId(numeroSecuriteSociale);
+                                    }
+                                    catch
+                                    {
+                                        // Si le chauffeur n'est pas trouvé, créer un objet minimal
+                                        chauffeur = new Salarie
+                                        {
+                                            NumeroSecuriteSociale = numeroSecuriteSociale,
+                                            Nom = nomChauffeur,
+                                            Prenom = prenomChauffeur,
+                                            Poste = "Chauffeur"
+                                        };
+                                    }
+                                }
+                                
+                                // Véhicule (peut être null)
+                                Vehicule? vehicule = null;
+                                if (commandeElement.TryGetProperty("Vehicule", out JsonElement vehiculeElement) && 
+                                    !vehiculeElement.ValueKind.Equals(JsonValueKind.Null))
+                                {
+                                    string immatriculation = vehiculeElement.GetProperty("Immatriculation").GetString() ?? string.Empty;
+                                    string marque = vehiculeElement.GetProperty("Marque").GetString() ?? string.Empty;
+                                    string modele = vehiculeElement.GetProperty("Modele").GetString() ?? string.Empty;
+                                    double poidsMaximal = vehiculeElement.GetProperty("PoidsMaximal").GetDouble();
+                                    
+                                    // Vérifier le type de véhicule
+                                    if (vehiculeElement.TryGetProperty("$type", out JsonElement typeElement))
+                                    {
+                                        string typeVehicule = typeElement.GetString() ?? string.Empty;
+                                        
+                                        if (typeVehicule.Contains("Voiture"))
+                                        {
+                                            int nombrePassagers = vehiculeElement.GetProperty("NombrePassagers").GetInt32();
+                                            vehicule = new Voiture(immatriculation, poidsMaximal, marque, modele, nombrePassagers);
+                                        }
+                                        else if (typeVehicule.Contains("PoidsLourd"))
+                                        {
+                                            double volumeRemorque = vehiculeElement.GetProperty("VolumeRemorque").GetDouble();
+                                            string typeRemorque = vehiculeElement.GetProperty("TypeRemorque").GetString() ?? "Standard";
+                                            string typeMarchandise = vehiculeElement.GetProperty("TypeMarchandise").GetString() ?? "Générale";
+                                            bool hasHayon = vehiculeElement.GetProperty("HasHayon").GetBoolean();
+                                            vehicule = new PoidsLourd(immatriculation, poidsMaximal, marque, modele, volumeRemorque, typeRemorque, typeMarchandise, hasHayon);
+                                        }
+                                        // Ajouter d'autres types si nécessaire
+                                    }
+                                }
+                                
+                                // Créer la commande avec les données extraites
+                                Commande commande = new Commande(id, client, chauffeur, vehicule, villeDepart, villeArrivee, dateCommande, dateLivraison, distance, prix);
+                                commandes.Add(commande);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Erreur lors du traitement d'une commande: {ex.Message}");
+                            }
+                        }
+                        
+                        // Reconstruire les liens client-commandes
+                        RebuildClientCommandeLinks();
+                        
+                        // Définir le prochain ID
                         prochainId = commandes.Any() ? commandes.Max(c => c.Id) + 1 : 1;
                         Console.WriteLine($"Commandes chargées avec succès depuis {fichier}. {commandes.Count} commandes récupérées.");
                     }
                     else
                     {
-                        Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté.");
-                        commandes.Clear();
-                        prochainId = 1;
+                        // Essayer de désérialiser directement comme une liste
+                        JsonSerializerOptions options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        
+                        List<Commande>? commandesChargees = JsonSerializer.Deserialize<List<Commande>>(jsonString, options);
+                        
+                        if (commandesChargees != null)
+                        {
+                            commandes.Clear();
+                            commandes.AddRange(commandesChargees);
+                            RebuildClientCommandeLinks();
+                            prochainId = commandes.Any() ? commandes.Max(c => c.Id) + 1 : 1;
+                            Console.WriteLine($"Commandes chargées avec succès depuis {fichier}. {commandes.Count} commandes récupérées.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Avertissement : Le fichier {fichier} semble vide ou mal formaté.");
+                            commandes.Clear();
+                            prochainId = 1;
+                        }
                     }
                 }
                 catch (JsonException jsonEx)
@@ -322,6 +472,95 @@ namespace Projet.Modules
                 commandes.Clear();
                 prochainId = 1;
             }
+        }
+
+        /// <summary>
+        /// Reconstruit les liens entre les clients et leurs commandes après désérialisation.
+        /// </summary>
+        private void RebuildClientCommandeLinks()
+        {
+            // Dictionnaire pour regrouper les commandes par client (en utilisant NumeroSS comme clé)
+            Dictionary<string, List<Commande>> commandesParClient = new Dictionary<string, List<Commande>>();
+            
+            // Regrouper toutes les commandes par client
+            foreach (Commande commande in commandes)
+            {
+                if (commande.Client != null)
+                {
+                    string numeroSS = commande.Client.NumeroSS;
+                    if (!commandesParClient.ContainsKey(numeroSS))
+                    {
+                        commandesParClient[numeroSS] = new List<Commande>();
+                    }
+                    commandesParClient[numeroSS].Add(commande);
+                }
+            }
+            
+            // Reconstruire l'historique des commandes pour chaque client
+            foreach (Commande commande in commandes)
+            {
+                if (commande.Client != null && commandesParClient.ContainsKey(commande.Client.NumeroSS))
+                {
+                    // S'assurer que l'historique est bien initialisé
+                    if (commande.Client.HistoriqueCommandes == null)
+                    {
+                        commande.Client.HistoriqueCommandes = new List<Commande>();
+                    }
+                    
+                    // Vider l'historique existant et ajouter toutes les commandes associées
+                    commande.Client.HistoriqueCommandes.Clear();
+                    commande.Client.HistoriqueCommandes.AddRange(commandesParClient[commande.Client.NumeroSS]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Synchronise les clients avec leurs commandes.
+        /// À appeler après le chargement des clients et des commandes.
+        /// </summary>
+        /// <param name="clientManager">Le gestionnaire de clients à synchroniser</param>
+        public void SynchroniserClientsAvecCommandes(ClientManager clientManager)
+        {
+            if (clientManager == null)
+                return;
+                
+            List<Client> clients = clientManager.ObtenirTousLesClients();
+            
+            // Dictionnaire pour regrouper les commandes par client (en utilisant NumeroSS comme clé)
+            Dictionary<string, List<Commande>> commandesParClient = new Dictionary<string, List<Commande>>();
+            
+            // Regrouper toutes les commandes par client
+            foreach (Commande commande in commandes)
+            {
+                if (commande.Client != null)
+                {
+                    string numeroSS = commande.Client.NumeroSS;
+                    if (!commandesParClient.ContainsKey(numeroSS))
+                    {
+                        commandesParClient[numeroSS] = new List<Commande>();
+                    }
+                    commandesParClient[numeroSS].Add(commande);
+                }
+            }
+            
+            // Mettre à jour l'historique des commandes pour chaque client
+            foreach (Client client in clients)
+            {
+                if (commandesParClient.ContainsKey(client.NumeroSS))
+                {
+                    // S'assurer que l'historique est bien initialisé
+                    if (client.HistoriqueCommandes == null)
+                    {
+                        client.HistoriqueCommandes = new List<Commande>();
+                    }
+                    
+                    // Vider l'historique existant et ajouter toutes les commandes associées
+                    client.HistoriqueCommandes.Clear();
+                    client.HistoriqueCommandes.AddRange(commandesParClient[client.NumeroSS]);
+                }
+            }
+            
+            Console.WriteLine($"Synchronisation terminée : {clients.Count} clients et {commandes.Count} commandes synchronisés.");
         }
     }
 }

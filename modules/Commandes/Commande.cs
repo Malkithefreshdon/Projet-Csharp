@@ -131,21 +131,8 @@ namespace Projet.Modules
             DateLivraison = dateLivraison;
             DistanceCalculee = distance;
             Prix = prix;
-
-            try
-            {
-                FinanceSimple finance = new FinanceSimple();
-                finance.AjouterTransaction(
-                    Prix,
-                    "Crédit",
-                    $"Commande #{Id} - {VilleDepart.Nom} à {VilleArrivee.Nom}",
-                    "Transport"
-                );
-            }
-            catch
-            {
-                // Ignorer les erreurs de finance pour ne pas bloquer la création
-            }
+            
+            // Suppression de la création de FinanceSimple pour éviter la récursion infinie
         }
 
         /// <summary>
