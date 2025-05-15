@@ -253,6 +253,7 @@ namespace Projet.Modules
                 {
                     WriteIndented = true,
                     PropertyNameCaseInsensitive = true,
+                    ReferenceHandler = ReferenceHandler.Preserve,
                     Converters = 
                     {
                         new JsonStringEnumConverter()

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -170,19 +171,50 @@ namespace Projet.Modules
                         $"Une des villes n'existe pas dans le graphe. Villes disponibles : {string.Join(", ", toutesLesVilles.Select(v => v.Nom))}");
                 }
 
-                (List<Ville> chemin, double distance) = grapheService.BellmanFord(VilleDepart, VilleArrivee);
+                // Calculer toutes les distances
+                var dijkstra = grapheService.Dijkstra(VilleDepart, VilleArrivee);
+                var bellmanFord = grapheService.BellmanFord(VilleDepart, VilleArrivee);
                 
-                if (double.IsInfinity(distance) || distance <= 0)
+                var fw = grapheService.FloydWarshall();
+                int departIndex = toutesLesVilles.FindIndex(v => v.Nom.Equals(VilleDepart.Nom));
+                int arriveeIndex = toutesLesVilles.FindIndex(v => v.Nom.Equals(VilleArrivee.Nom));
+                double distanceFw = double.PositiveInfinity;
+                List<Ville> cheminFw = new List<Ville>();
+                if (fw.HasValue)
                 {
-                    Console.WriteLine($"Chemin trouvé : {(chemin != null ? string.Join(" -> ", chemin.Select(v => v.Nom)) : "aucun")}");
-                    Console.WriteLine($"Distance calculée : {distance}");
+                    cheminFw = grapheService.ReconstruireCheminFloydWarshall(departIndex, arriveeIndex, fw.Value.distances, fw.Value.predecesseurs, toutesLesVilles);
+                    distanceFw = fw.Value.distances[departIndex, arriveeIndex];
+                }
+
+                // Choisir le plus court chemin
+                (List<Ville> chemin, double distance) resultat;
+                if (dijkstra.distanceTotale <= bellmanFord.distanceTotale && dijkstra.distanceTotale <= distanceFw)
+                {
+                    resultat = dijkstra;
+                    Console.WriteLine("Dijkstra trouve le plus court chemin");
+                }
+                else if (bellmanFord.distanceTotale <= distanceFw)
+                {
+                    resultat = bellmanFord;
+                    Console.WriteLine("Bellman-Ford trouve le plus court chemin");
+                }
+                else
+                {
+                    resultat = (cheminFw, distanceFw);
+                    Console.WriteLine("Floyd-Warshall trouve le plus court chemin");
+                }
+
+                if (double.IsInfinity(resultat.distance) || resultat.distance <= 0)
+                {
+                    Console.WriteLine($"Chemin trouvé : {(resultat.chemin != null ? string.Join(" -> ", resultat.chemin.Select(v => v.Nom)) : "aucun")}");
+                    Console.WriteLine($"Distance calculée : {resultat.distance}");
                     throw new InvalidOperationException(
                         $"Impossible de calculer un itinéraire valide entre {VilleDepart.Nom} et {VilleArrivee.Nom}. " +
                         "Vérifiez que les villes sont bien connectées dans le graphe.");
                 }
 
-                DistanceCalculee = distance;
-                Console.WriteLine($"Distance calculée avec succès : {distance} km");
+                DistanceCalculee = resultat.distance;
+                Console.WriteLine($"Distance calculée avec succès : {resultat.distance} km");
             }
             catch (Exception ex)
             {

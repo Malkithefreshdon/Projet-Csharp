@@ -68,6 +68,7 @@ namespace Projet.Modules.UI
                 Console.WriteLine("2. Rechercher le plus court chemin");
                 Console.WriteLine("3. Vérifier la connexité");
                 Console.WriteLine("4. Vérifier les cycles");
+                Console.WriteLine("5. Afficher les parcours BFS et DFS");
                 Console.WriteLine("0. Retour");
                 Console.WriteLine("\nVotre choix : ");
 
@@ -85,6 +86,9 @@ namespace Projet.Modules.UI
                         break;
                     case "4":
                         VerifierCycles();
+                        break;
+                    case "5":
+                        AfficherParcours();
                         break;
                     case "0":
                         continuer = false;
@@ -262,6 +266,55 @@ namespace Projet.Modules.UI
             {
                 Console.WriteLine("\nCela signifie qu'il existe au moins un chemin qui permet de revenir à une ville de départ en passant par d'autres villes.");
             }
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+
+        /// <summary>
+        /// Affiche les parcours BFS et DFS à partir d'une ville sélectionnée.
+        /// </summary>
+        private void AfficherParcours()
+        {
+            Console.Clear();
+            ConsoleHelper.AfficherTitre("Parcours du Graphe (BFS et DFS)");
+
+            ChargerDonneesGraphe();
+
+            List<Ville> villes = this.grapheListe.GetToutesLesVilles().ToList();
+            if (!villes.Any())
+            {
+                Console.WriteLine("Aucune ville n'est disponible dans le graphe.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("Villes disponibles :");
+            foreach (Ville ville in villes.OrderBy(v => v.Nom))
+            {
+                Console.WriteLine($"- {ville.Nom}");
+            }
+
+            Console.Write("\nChoisissez une ville de départ : ");
+            string villeDepart = Console.ReadLine();
+
+            Ville depart = villes.FirstOrDefault(v => v.Nom.Equals(villeDepart, StringComparison.OrdinalIgnoreCase));
+            if (depart == null)
+            {
+                Console.WriteLine("\nVille non trouvée. Vérifiez l'orthographe et respectez la casse.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Parcours en largeur (BFS)
+            Console.WriteLine("\nParcours en Largeur (BFS) :");
+            List<Ville> parcoursLargeur = this.grapheServiceListe.BFS(depart);
+            Console.WriteLine("Ordre de visite : " + string.Join(" -> ", parcoursLargeur.Select(v => v.Nom)));
+
+            // Parcours en profondeur (DFS)
+            Console.WriteLine("\nParcours en Profondeur (DFS) :");
+            List<Ville> parcoursProfondeur = this.grapheServiceListe.DFS(depart);
+            Console.WriteLine("Ordre de visite : " + string.Join(" -> ", parcoursProfondeur.Select(v => v.Nom)));
+
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Projet.Modules
 {
@@ -59,7 +60,8 @@ namespace Projet.Modules
             ClientsData clientsData = new ClientsData { Clients = clients };
             JsonSerializerOptions options = new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.Preserve
             };
             string jsonString = JsonSerializer.Serialize(clientsData, options);
             File.WriteAllText(jsonPath, jsonString);
